@@ -771,7 +771,7 @@ export default function BusinessPortal(props) {
                 </div>
             </div>
 
-            <style jsx>{`
+            <style>{`
         .skeleton {
           background: #e2e8f0;
           background-image: linear-gradient(

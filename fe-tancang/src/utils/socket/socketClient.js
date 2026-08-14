@@ -81,9 +81,11 @@ export const getSocket = (namespace = SOCKET_NAMESPACES.NOTIFICATIONS, options =
     reconnectionDelay: 1000,
     timeout: 10000,
     ...socketOptions,
-    auth: {
-      ...(socketOptions.auth || {}),
-      token,
+    auth: (cb) => {
+      cb({
+        ...(socketOptions.auth || {}),
+        token: getSocketToken(),
+      });
     },
   });
 
@@ -112,6 +114,15 @@ export const disconnectSocket = (namespace = SOCKET_NAMESPACES.NOTIFICATIONS) =>
 
   socket.disconnect();
   delete socketInstances[namespace];
+};
+
+export const disconnectAllSockets = () => {
+  Object.keys(socketInstances).forEach((key) => {
+    try {
+      socketInstances[key]?.disconnect();
+    } catch (e) {}
+    delete socketInstances[key];
+  });
 };
 
 export default getSocket;

@@ -362,23 +362,7 @@ function redirectToLogin() {
   // Xóa sạch queue
   failedQueue = [];
   
-  // let rememberedUsername = "";
-  // try {
-  //   const rememberedUser = JSON.parse(localStorage.getItem("keycloak-remembered-user") || "null");
-  //   rememberedUsername = rememberedUser?.username || "";
-  // } catch (error) {
-  //   localStorage.removeItem("keycloak-remembered-user");
-  // }
-
-  const params = new URLSearchParams();
-  params.set("redirect_uri", window.location.origin);
-  // if (rememberedUsername) {
-  //   params.set("username", rememberedUsername);
-  //   window.location.href = `${APP_BASE}/api/auth-keycloak/login-passkey?${params.toString()}`;
-  //   return;
-  // }
-
-  window.location.href = `${APP_BASE}/api/auth-keycloak/login?${params.toString()}`;
+  window.location.href = "/login";
 }
 
 /**

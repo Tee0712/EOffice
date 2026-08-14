@@ -71,6 +71,9 @@ const PrimaryValueChip = styled(Chip)(({ theme }) => ({
 const TreeTableWrapperBox = styled(Box)({
   width: "100%",
   marginTop: "8px",
+    "& th:first-of-type, & td:first-of-type": {
+      display: "none !important",
+    },
 });
 
 
@@ -273,19 +276,38 @@ const StatCardDetailDialog = ({
     }));
   }, []);
 
-  const handleRowClick = useCallback((taskId) => {
+  const handleRowClick = useCallback((taskId, row) => {
     if (!taskId) return;
-    const componentInfo = getComponentByKey("VIEW_TASK");
+    
+    let componentKey = "VIEW_TASK";
+    const isOutgoingDocs = statBlock?.parentCard?.id === 'outgoing-documents' || statBlock?.id === 'outgoing-documents';
+    const isIncomingDocs = statBlock?.parentCard?.id === 'incoming-documents' || statBlock?.id === 'incoming-documents';
+    const isMediumDocs = statBlock?.parentCard?.id === 'documents-month' || statBlock?.id === 'documents-month';
+    const isPremiumDocs = statBlock?.parentCard?.id === 'company-documents' || statBlock?.id === 'company-documents';
+
+    if (isOutgoingDocs) {
+      componentKey = "VIEW_OUTCOMING_DOC_DI";
+    } else if (isIncomingDocs) {
+      componentKey = "VIEW_INCOMING_DOC";
+    } else if (isMediumDocs || isPremiumDocs) {
+      if (row?.docType === 'outgoing') {
+        componentKey = "VIEW_OUTCOMING_DOC_DI";
+      } else {
+        componentKey = "VIEW_INCOMING_DOC";
+      }
+    }
+
+    const componentInfo = getComponentByKey(componentKey);
     if (componentInfo) {
       openDetailDialog(componentInfo, taskId);
       onClose();
     }
-  }, [onClose]);
+  }, [onClose, statBlock]);
 
   const handleCellClick = useCallback((row, key) => {
-    if (key === "name") {
-      const rowId = row?.id || row?.taskId;
-      handleRowClick(rowId);
+    if (key === "name" || key === "title" || key === "abstractNote") {
+      const rowId = row?.documentId || row?.id || row?.taskId || row?._id;
+      handleRowClick(rowId, row);
     }
   }, [handleRowClick]);
 
@@ -362,43 +384,105 @@ const StatCardDetailDialog = ({
         };
 
         if (isMedium) {
-          apiEndpoint = `${APP_BASE}/api/dashboard/medium/tasks-room-list`;
-          let filter = 'total';
-          if (statBlock?.key === 'main') {
-            filter = 'total';
+          const isMediumDocs = statBlock?.parentCard?.id === 'documents-month' || statBlock?.id === 'documents-month';
+          if (isMediumDocs) {
+            apiEndpoint = `${APP_BASE}/api/dashboard/medium/documents-list`;
+            let filter = 'total';
+            if (statBlock?.key === 'main') {
+              filter = 'total';
+            } else {
+              const id = String(statBlock?.id || '').toLowerCase();
+              if (id === 'doc-overdue' || id === 'overdue' || id === 'late') filter = 'overdue';
+              else if (id === 'doc-pending' || id === 'pending') filter = 'pending';
+              else if (id === 'doc-done' || id === 'done' || id === 'processed') filter = 'done';
+              else filter = 'total';
+            }
+            queryParams.filter = filter;
           } else {
-            if (statBlock?.id === 'doing') filter = 'doing';
-            else if (statBlock?.id === 'overdue') filter = 'overdue';
-            else if (statBlock?.id === 'done') filter = 'done';
-            else filter = 'total';
+            apiEndpoint = `${APP_BASE}/api/dashboard/medium/tasks-room-list`;
+            let filter = 'today';
+            if (statBlock?.key === 'main') {
+              filter = 'today';
+            } else {
+              const id = String(statBlock?.id || '').toLowerCase();
+              if (id === 'doing') filter = 'doing';
+              else if (id === 'overdue' || id === 'late') filter = 'overdue';
+              else if (id === 'done') filter = 'done';
+              else filter = 'today';
+            }
+            queryParams.filter = filter;
           }
-          queryParams.filter = filter;
         } else if (isNormal) {
-          apiEndpoint = `${APP_BASE}/api/dashboard/normal/tasks-list`;
-          let filter = 'total';
-          if (statBlock?.key === 'main') {
-            filter = 'total';
+          const isOutgoingDocs = statBlock?.parentCard?.id === 'outgoing-documents' || statBlock?.id === 'outgoing-documents';
+          const isIncomingDocs = statBlock?.parentCard?.id === 'incoming-documents' || statBlock?.id === 'incoming-documents';
+          if (isOutgoingDocs) {
+            apiEndpoint = `${APP_BASE}/api/dashboard/normal/outgoing-documents-list`;
+            let filter = 'total';
+            if (statBlock?.key === 'main') {
+              filter = 'total';
+            } else {
+              const label = String(statBlock?.label || statBlock?.title || '').toLowerCase();
+              if (label.includes('dự thảo')) filter = 'draft';
+              else if (label.includes('chờ duyệt')) filter = 'pending';
+              else if (label.includes('quá hạn')) filter = 'overdue';
+              else filter = 'total';
+            }
+            queryParams.filter = filter;
+          } else if (isIncomingDocs) {
+            apiEndpoint = `${APP_BASE}/api/dashboard/normal/incoming-documents-list`;
+            let filter = 'total';
+            if (statBlock?.key === 'main') {
+              filter = 'total';
+            } else {
+              const label = String(statBlock?.label || statBlock?.title || '').toLowerCase();
+              if (label.includes('chờ xử lý')) filter = 'pending';
+              else if (label.includes('đang xử lý')) filter = 'in-progress';
+              else if (label.includes('quá hạn')) filter = 'overdue';
+              else filter = 'total';
+            }
+            queryParams.filter = filter;
           } else {
-            const label = String(statBlock?.label || statBlock?.title || '').toLowerCase();
-            if (label.includes('đang thực hiện')) filter = 'doing';
-            else if (label.includes('quá hạn')) filter = 'overdue';
-            else if (label.includes('chờ phê duyệt')) filter = 'pending-approval';
-            else if (label.includes('hoàn thành')) filter = 'done';
-            else filter = 'total';
+            apiEndpoint = `${APP_BASE}/api/dashboard/normal/tasks-list`;
+            let filter = 'total';
+            if (statBlock?.key === 'main') {
+              filter = 'total';
+            } else {
+              const label = String(statBlock?.label || statBlock?.title || '').toLowerCase();
+              if (label.includes('đang thực hiện')) filter = 'doing';
+              else if (label.includes('quá hạn')) filter = 'overdue';
+              else if (label.includes('chờ phê duyệt')) filter = 'pending-approval';
+              else if (label.includes('hoàn thành')) filter = 'done';
+              else filter = 'total';
+            }
+            queryParams.filter = filter;
           }
-          queryParams.filter = filter;
         } else {
-          apiEndpoint = `${APP_BASE}/api/dashboard/premium/company-tasks`;
-          let type = 'all';
-          if (statBlock?.key === 'main') {
-            type = 'all';
+          const isPremiumDocs = statBlock?.parentCard?.id === 'company-documents' || statBlock?.id === 'company-documents';
+          if (isPremiumDocs) {
+            apiEndpoint = `${APP_BASE}/api/dashboard/premium/company-documents`;
+            let type = 'all';
+            if (statBlock?.key === 'main') {
+              type = 'all';
+            } else {
+              const id = String(statBlock?.id || '').toLowerCase();
+              if (id === 'processed' || id === 'done') type = 'processed';
+              else if (id === 'late' || id === 'doc-late') type = 'late';
+              else type = 'all';
+            }
+            queryParams.type = type;
           } else {
-            const id = String(statBlock?.id || '').toLowerCase();
-            if (id === 'done') type = 'done';
-            else if (id === 'late') type = 'late';
-            else type = 'all';
+            apiEndpoint = `${APP_BASE}/api/dashboard/premium/company-tasks`;
+            let type = 'all';
+            if (statBlock?.key === 'main') {
+              type = 'all';
+            } else {
+              const id = String(statBlock?.id || '').toLowerCase();
+              if (id === 'done') type = 'done';
+              else if (id === 'late') type = 'late';
+              else type = 'all';
+            }
+            queryParams.type = type;
           }
-          queryParams.type = type;
         }
 
         axiosInstance
@@ -430,10 +514,15 @@ const StatCardDetailDialog = ({
               else if (Array.isArray(responseData.tasks)) items = responseData.tasks;
             }
 
+            const mappedItems = items.map((item) => ({
+              ...item,
+              docCode: item.toBookCode || item.textSymbols || "",
+            }));
+
             total = responseData?.total ?? responseData?.totalCount ?? responseData?.totalItems ?? items.length;
             pages = responseData?.totalPages ?? 1;
 
-            setTableData(items);
+            setTableData(mappedItems);
             setTotalCount(total);
             setTotalPages(pages);
           })
@@ -462,6 +551,7 @@ const StatCardDetailDialog = ({
     isNotification ||
     String(dialogTitle).toLowerCase().includes("chậm tiến độ");
 
+
   const columns = useMemo(() => {
     if (customColumns && Array.isArray(customColumns)) {
       return customColumns;
@@ -475,6 +565,43 @@ const StatCardDetailDialog = ({
         { key: "slowReason", label: "Lý do trễ hạn", width: 300 },
       ];
     }
+    
+    const isOutgoing = statBlock?.parentCard?.id === 'outgoing-documents' || statBlock?.id === 'outgoing-documents';
+    const isIncoming = statBlock?.parentCard?.id === 'incoming-documents' || statBlock?.id === 'incoming-documents';
+    const isMediumDoc = statBlock?.parentCard?.id === 'documents-month' || statBlock?.id === 'documents-month';
+    const isPremiumDoc = statBlock?.parentCard?.id === 'company-documents' || statBlock?.id === 'company-documents';
+
+    if (isOutgoing) {
+      return [
+        { key: "textSymbols", name: "textSymbols", label: "Số văn bản", isShow: true, width: "120px" },
+        { key: "abstractNote", name: "abstractNote", label: "Trích yếu", isShow: true, width: "300px" },
+        { key: "files", name: "files", label: "File văn bản", isShow: true, width: "100px", margin: "center" },
+        { key: "documentDate", name: "documentDate", label: "Ngày trên văn bản", isShow: true, width: "140px" },
+        { key: "deadline", name: "deadline", label: "Hạn văn bản", isShow: true, width: "120px" },
+        { key: "statusCode", name: "statusCode", label: "Trạng thái", isShow: true, width: "150px", margin: "center" },
+      ];
+    }
+    if (isIncoming) {
+      return [
+        { key: "toBookCode", name: "toBookCode", label: "Số văn bản", isShow: true, width: "120px" },
+        { key: "abstractNote", name: "abstractNote", label: "Trích yếu", isShow: true, width: "300px" },
+        { key: "files", name: "files", label: "File văn bản", isShow: true, width: "100px", margin: "center" },
+        { key: "documentDate", name: "documentDate", label: "Ngày trên văn bản", isShow: true, width: "140px" },
+        { key: "deadline", name: "deadline", label: "Hạn văn bản", isShow: true, width: "120px" },
+        { key: "statusCode", name: "statusCode", label: "Trạng thái", isShow: true, width: "150px", margin: "center" },
+      ];
+    }
+    if (isMediumDoc || isPremiumDoc) {
+      return [
+        { key: "docCode", name: "docCode", label: "Số văn bản", isShow: true, width: "120px" },
+        { key: "abstractNote", name: "abstractNote", label: "Trích yếu", isShow: true, width: "300px" },
+        { key: "files", name: "files", label: "File văn bản", isShow: true, width: "100px", margin: "center" },
+        { key: "documentDate", name: "documentDate", label: "Ngày trên văn bản", isShow: true, width: "140px" },
+        { key: "deadline", name: "deadline", label: "Hạn văn bản", isShow: true, width: "120px" },
+        { key: "statusCode", name: "statusCode", label: "Trạng thái", isShow: true, width: "150px", margin: "center" },
+      ];
+    }
+
     return [
       { key: "name", name: "name", label: "Tên công việc", isShow: true, width: "260px" },
       { key: "processStatusUi", name: "processStatusUi", label: "Trạng thái", isShow: true, width: "160px", margin: "center" },
@@ -485,7 +612,7 @@ const StatCardDetailDialog = ({
       { key: "endDateNotHTML", name: "endDateNotHTML", label: "Hạn hoàn thành", isShow: true, width: "120px" },
       { key: "progressView", name: "progressView", label: "Tiến độ", isShow: true, width: "140px" },
     ];
-  }, [customColumns, isDelayJobs]);
+  }, [customColumns, isDelayJobs, statBlock?.id, statBlock?.parentCard?.id]);
 
   // Save changes handler
   const handleSaveReasons = useCallback(async () => {
@@ -789,7 +916,7 @@ const StatCardDetailDialog = ({
       ) : (
         <TreeTableWrapperBox>
           <CustomTableBorderTree
-            type="statDetailTreeTable"
+            type={"statDetailTreeTable"}
             data={paginatedData}
             dataColumn={columns}
             loading={loading}

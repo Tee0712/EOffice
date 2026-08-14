@@ -841,7 +841,7 @@ export default function SearchResultsPage() {
     if (images.length === 0 && (data.type === 'image' || data.type === 'album')) {
       const thumbUrl = data.thumbnailFileId ? `${API_FILES_VIEW}/${data.thumbnailFileId}` :
         data.thumbnail ? (data.thumbnail.startsWith('http') ? data.thumbnail : `${APP_BASE}${data.thumbnail.startsWith('/') ? '' : '/'}${data.thumbnail}`) :
-          "https://via.placeholder.com/800x600?text=No+Image";
+          DEFAULT_NEWS_THUMBNAIL;
       images = [{ url: thumbUrl }];
     }
 
@@ -1320,7 +1320,7 @@ export default function SearchResultsPage() {
         )}
       </div>
 
-      <style jsx>{`
+      <style>{`
         .sr-page-wrapper {
           background: transparent;
           width: 100%;

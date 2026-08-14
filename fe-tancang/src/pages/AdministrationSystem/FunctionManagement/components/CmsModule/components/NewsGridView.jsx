@@ -839,7 +839,7 @@ export default function NewsGridView({ topic }) {
         item={selectedItem}
       />
 
-      <style jsx>{`
+      <style>{`
         .ng-new-tag {
           color: #f59e0b;
           font-weight: 700;

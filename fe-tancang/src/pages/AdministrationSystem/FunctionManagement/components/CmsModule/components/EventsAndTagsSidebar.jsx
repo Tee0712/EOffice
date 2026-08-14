@@ -335,7 +335,7 @@ export default function EventsAndTagsSidebar() {
         </div>
       </section>
 
-      <style jsx>{`
+      <style>{`
         .ets-sidebar {
           display: flex;
           flex-direction: column;

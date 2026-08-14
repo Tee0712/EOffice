@@ -89,8 +89,8 @@ const AddIncommingDoc = ({
       toBook: "",
       senderUnit: "",
       bookDocumentId: "",
-      documentDate: mode === "add" ? new Date() : null,
-      receiveDate: null,
+      documentDate: null,
+      receiveDate: mode === "add" ? new Date() : null,
       toBookDate: null,
       receiveMethod: "",
       privateLevel: "",
@@ -155,8 +155,8 @@ const AddIncommingDoc = ({
         const data = res?.document || {};
 
         const updatedData = { ...data };
-        if (mode === "add" && !updatedData.documentDate) {
-          updatedData.documentDate = new Date();
+        if (mode === "add" && !updatedData.receiveDate) {
+          updatedData.receiveDate = new Date();
         }
 
         if (mode === "add" && !updatedData.viewGroup) {

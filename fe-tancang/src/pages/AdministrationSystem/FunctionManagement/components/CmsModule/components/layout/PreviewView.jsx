@@ -54,7 +54,7 @@ const NavMenuItem = ({ item, isSidebar, isActive, fSize, tColor, iColor, homeIco
 
   return (
     <S.StyledLink
-      href={item.href}
+      href={item.href || null}
       onClick={handleClick}
     >
       <S.NavLinkStyled

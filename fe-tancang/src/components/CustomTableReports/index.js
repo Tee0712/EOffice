@@ -57,13 +57,13 @@ import { Collapse, IconButton, Menu, MenuItem, ListItemText, Typography, Paginat
 import { PieChart, Pie, Cell } from "recharts";
 import DOMPurify from "dompurify";
 import {
-  PaginationContainer as BeautifulPaginationContainer,
-  InfoBox as BeautifulInfoBox,
-  StyledPagination as BeautifulStyledPagination,
-  RowsPerPageBox as BeautifulRowsPerPageBox,
-  DisplayTypography as BeautifulDisplayTypography,
-  RowsPerPageSelect as BeautifulRowsPerPageSelect,
-  RowsPerPageStack as BeautifulRowsPerPageStack,
+    PaginationContainer as BeautifulPaginationContainer,
+    InfoBox as BeautifulInfoBox,
+    StyledPagination as BeautifulStyledPagination,
+    RowsPerPageBox as BeautifulRowsPerPageBox,
+    DisplayTypography as BeautifulDisplayTypography,
+    RowsPerPageSelect as BeautifulRowsPerPageSelect,
+    RowsPerPageStack as BeautifulRowsPerPageStack,
 } from "@builder-table/components/PaginationSection.styles";
 
 // const StylePageButtonReport = styled(StylePageButton)({
@@ -664,14 +664,14 @@ const CustomTableReports = (props) => {
             columnsTable = viewConfig.field || [];
 
             const isLeaderRole = isLeader;
-            const isTruongPhongRole = isTruongPhong;
+            // const isTruongPhongRole = isTruongPhong;
             const isMatch = (str) => {
                 if (typeof str !== 'string') return false;
                 const normalized = str.normalize('NFC').trim().toLowerCase();
                 return normalized === 'phòng ban' || normalized === 'phong ban';
             };
 
-            if (isLeaderRole && !isTruongPhongRole && selectedTable === 'columnsPerformanceJobPerson' && reportType === 'department') {
+            if (isLeaderRole && selectedTable === 'columnsPerformanceJobPerson' && reportType === 'department') {
                 columnsTable = columnsTable.map(col => {
                     let name = col.name;
                     let label = col.label;
@@ -911,49 +911,49 @@ const CustomTableReports = (props) => {
                 </StyledTable>
             </StyledTableContainer>
             <BeautifulPaginationContainer isCentered={false}>
-              <BeautifulInfoBox isCentered={false}>
-                <Typography variant="body2">
-                  Hiển thị{" "}
-                  <strong>{page * rowsPerPage + 1}-{Math.min((page + 1) * rowsPerPage, total)}</strong>
-                  {" "}trong tổng số{" "}
-                  <strong>{total?.toLocaleString()}</strong>{" "}bản ghi
-                </Typography>
-              </BeautifulInfoBox>
+                <BeautifulInfoBox isCentered={false}>
+                    <Typography variant="body2">
+                        Hiển thị{" "}
+                        <strong>{page * rowsPerPage + 1}-{Math.min((page + 1) * rowsPerPage, total)}</strong>
+                        {" "}trong tổng số{" "}
+                        <strong>{total?.toLocaleString()}</strong>{" "}bản ghi
+                    </Typography>
+                </BeautifulInfoBox>
 
-              <BeautifulRowsPerPageStack>
-                <BeautifulRowsPerPageBox>
-                  <BeautifulDisplayTypography>Hiển thị</BeautifulDisplayTypography>
-                  <BeautifulRowsPerPageSelect
-                    value={rowsPerPage}
-                    onChange={handleRowsPerPageChange}
-                    size="small"
-                  >
-                    {rowsPerPageOptions.map((option) => (
-                      <MenuItem key={option} value={option}>
-                        {option}
-                      </MenuItem>
-                    ))}
-                  </BeautifulRowsPerPageSelect>
-                </BeautifulRowsPerPageBox>
+                <BeautifulRowsPerPageStack>
+                    <BeautifulRowsPerPageBox>
+                        <BeautifulDisplayTypography>Hiển thị</BeautifulDisplayTypography>
+                        <BeautifulRowsPerPageSelect
+                            value={rowsPerPage}
+                            onChange={handleRowsPerPageChange}
+                            size="small"
+                        >
+                            {rowsPerPageOptions.map((option) => (
+                                <MenuItem key={option} value={option}>
+                                    {option}
+                                </MenuItem>
+                            ))}
+                        </BeautifulRowsPerPageSelect>
+                    </BeautifulRowsPerPageBox>
 
-                <BeautifulStyledPagination
-                  count={totalPages || Math.ceil(total / rowsPerPage)}
-                  page={page + 1}
-                  onChange={handlePageChange}
-                  renderItem={(item) => (
-                    <PaginationItem
-                      slots={{ previous: () => 'Trước', next: () => 'Sau' }}
-                      {...item}
+                    <BeautifulStyledPagination
+                        count={totalPages || Math.ceil(total / rowsPerPage)}
+                        page={page + 1}
+                        onChange={handlePageChange}
+                        renderItem={(item) => (
+                            <PaginationItem
+                                slots={{ previous: () => 'Trước', next: () => 'Sau' }}
+                                {...item}
+                            />
+                        )}
+                        shape="rounded"
+                        variant="text"
+                        showFirstButton={false}
+                        showLastButton={false}
+                        siblingCount={1}
+                        boundaryCount={1}
                     />
-                  )}
-                  shape="rounded"
-                  variant="text"
-                  showFirstButton={false}
-                  showLastButton={false}
-                  siblingCount={1}
-                  boundaryCount={1}
-                />
-              </BeautifulRowsPerPageStack>
+                </BeautifulRowsPerPageStack>
             </BeautifulPaginationContainer>
         </>
     );
@@ -990,7 +990,7 @@ const CustomTableReports = (props) => {
                                     <SkyFormControlLabel
                                         value="department"
                                         control={<SkyRadio size="small" />}
-                                        label={isTruongPhong ? "Phòng ban" : "Cơ quan, đơn vị"}
+                                        label={(isLeader && isTruongPhong) ? "Cơ quan, đơn vị" : (isTruongPhong ? "Phòng ban" : "Cơ quan, đơn vị")}
                                         labelPlacement="start"
                                     />
                                     <SkyFormControlLabel
@@ -1066,11 +1066,11 @@ const CustomTableReports = (props) => {
                         <div style={{ width: '320px', minWidth: '320px', backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '24px', display: 'flex', flexDirection: 'column', height: 'fit-content', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)' }}>
                             <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#1e293b', marginBottom: '16px' }}>Trạng thái nhiệm vụ</div>
                             {chartStats ? (() => {
-                                const grandTotalVal = chartStats.grandTotal || 
-                                    ((chartStats.completed?.count || 0) + 
-                                     (chartStats.inProgress?.count || 0) + 
-                                     (chartStats.overdue?.count || 0) + 
-                                     (chartStats.pending?.count || 0));
+                                const grandTotalVal = chartStats.grandTotal ||
+                                    ((chartStats.completed?.count || 0) +
+                                        (chartStats.inProgress?.count || 0) +
+                                        (chartStats.overdue?.count || 0) +
+                                        (chartStats.pending?.count || 0));
                                 const hasData = grandTotalVal > 0;
                                 const chartData = hasData ? [
                                     { name: 'Đã hoàn thành', value: chartStats.completed?.count || 0, color: '#10b981' },

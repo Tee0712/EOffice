@@ -139,25 +139,24 @@ export const incomingDocumentSchema = yup.object().shape({
   documentDate: yup
     .mixed()
     .nullable()
-    .required("Vui lòng chọn ngày đến."),
+    .required("Vui lòng chọn ngày trên văn bản.")
+    .test(
+      "is-not-after-receive-date",
+      "Ngày trên văn bản không được lớn hơn ngày đến.",
+      function (value) {
+        const { receiveDate } = this.parent;
+        if (!value || !receiveDate) {
+          return true;
+        }
+        return !dayjs(value).isAfter(dayjs(receiveDate), "day");
+      }
+    ),
 
   senderUnit: yup.string().required("Vui lòng chọn đơn vị gửi."),
   receiveDate: yup
     .mixed() // Dùng mixed vì giá trị có thể là null, string, hoặc dayjs object
-      .nullable()
-    .required("Vui lòng chọn ngày trên văn bản.")
-  
-    .test(
-      "is-not-after-document-date",
-      "Ngày trên văn bản không được lớn hơn ngày đến.",
-      function (value) {
-        const { documentDate } = this.parent;
-        if (!value || !documentDate) {
-          return true; // Bỏ qua nếu một trong hai ngày không tồn tại
-        }
-        return !dayjs(value).isAfter(dayjs(documentDate), "day"); // Cho phép bằng nhau
-      }
-    ),
+    .nullable()
+    .required("Vui lòng chọn ngày đến."),
   toBookDate: yup
     .mixed()
     .required("Vui lòng chọn ngày vào sổ.")

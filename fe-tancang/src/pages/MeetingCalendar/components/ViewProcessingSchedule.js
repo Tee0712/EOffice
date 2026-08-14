@@ -31,6 +31,7 @@ import {
 } from "@pages/IncomingDocumentManagement/components/AddIncommingDoc/components/AddIncommingDoc.styles";
 import FormButton from "@components/FormButton";
 import { typeFlagMap } from "@components/FormButton/constant";
+
 import * as yup from "yup";
 import { withFormWrapper } from "@components/common/FormWrapper";
 import dayjs from "dayjs";
@@ -956,6 +957,11 @@ const ViewProcessingSchedule = ({
     fetchMeetingDetails();
   }, [fetchMeetingDetails]);
 
+  const handleReloadAll = useCallback(() => {
+    fetchMeetingDetails();
+    onSuccess?.();
+  }, [fetchMeetingDetails, onSuccess]);
+
   const reconstructSelectedUnits = (data) => {
     const units = [];
     if (!data.units) return units;
@@ -1350,8 +1356,7 @@ const ViewProcessingSchedule = ({
             )} */}
            <FormButton
               dataDetail={dataForFormButton}
-              setReloadData={onSuccess} 
-              onClose={onClose}
+              setReloadData={handleReloadAll}
               disabled={isLoading}
               sharedComponents={sharedComponents}
               onAction={handleProcessingAction}

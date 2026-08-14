@@ -25,7 +25,7 @@ import {
 	API_GET_LIST_UNIT,
 } from "@EnvironmentFile/constants/urlConfig";
 import DynamicExportDialog from "@components/DynamicExportDialog";
-import { NotificationContext } from "@components/NotificationContext";
+
 // import LoadingDialog from "@components/LoadingDialog";
 import {
 	StyleDriveFileRenameOutlineOutlinedIcon,
@@ -245,10 +245,7 @@ const ViewDialog = (props) => {
 		title,
 		isVanThuCuc,
 		isPendingPublishOrStamp,
-		isFromNotification,
 	} = props;
-	const notifContext = React.useContext(NotificationContext);
-	const isNotif = Boolean(isFromNotification || notifContext?.isFromNotification);
 	// logger.log("ViewDialog", props)
 	// Destructure shared components
 	const {
@@ -1479,14 +1476,9 @@ const ViewDialog = (props) => {
 			);
 
 			if (res) {
+				handleReloadAll();
 				toast(res?.message || "Hoàn thành VBDT thành công", "success");
 				setNote("");
-				if (isNotif) {
-					handleReloadAll();
-				} else {
-					onClose();
-					handleReloadAll();
-				}
 			}
 		} catch (error) {
 			logger.log("err", error);
@@ -1498,8 +1490,6 @@ const ViewDialog = (props) => {
 		documentDetail?.availableActions,
 		documentDetail?.workItem?.id,
 		note,
-		isNotif,
-		onClose,
 		handleReloadAll,
 		toast,
 		userId,
@@ -1839,12 +1829,7 @@ const ViewDialog = (props) => {
 				toast("Thu hồi xử lý thành công", "success");
 				dispatch(getSideBarMenu()); // Cập nhật sidebar
 				handleCloseRecallDialog();
-				if (isNotif) {
-					handleReloadAll();
-				} else {
-					onClose();
-					handleReloadAll();
-				}
+				handleReloadAll();
 			}
 		} catch (error) {
 			logger.log("error", error);
@@ -1853,8 +1838,6 @@ const ViewDialog = (props) => {
 	}, [
 		documentId,
 		dispatch,
-		isNotif,
-		onClose,
 		handleReloadAll,
 		handleCloseRecallDialog,
 		toast,
@@ -2139,8 +2122,7 @@ const ViewDialog = (props) => {
 							</BatchSignButtonWrapper>
 						)}
 						<FormButton
-							setReloadData={isNotif ? handleReloadAll : setReloadData}
-							onClose={isNotif ? undefined : onClose}
+							setReloadData={handleReloadAll}
 							dataDetail={documentDetail}
 							getFormDataForUpdate={getFormDataForUpdate}
 							selectedUsersByStep={selectedUsersByStep}

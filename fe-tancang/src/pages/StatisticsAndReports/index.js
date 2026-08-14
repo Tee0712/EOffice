@@ -154,7 +154,7 @@ const StatisticsAndReports = () => {
                 }
                 const isPhongBanOrNguoiChuTri = f?.code === 'nguoiChuTri' || f?.key === 'nguoiChuTri' || f?.code === 'phongBan' || f?.key === 'phongBan' || f?.row === 'phongBan';
                 if (isPhongBanOrNguoiChuTri) {
-                    const shouldChangeToCoQuan = isLeader && !checkRoleGroup?.isTruongPhong;
+                    const shouldChangeToCoQuan = isLeader;
                     const labelText = shouldChangeToCoQuan ? "Cơ quan, đơn vị" : "Phòng ban";
                     title = labelText;
                     label = labelText;
@@ -165,7 +165,7 @@ const StatisticsAndReports = () => {
             } else {
                 const isPhongBan = f?.code === 'phongBan' || f?.key === 'phongBan' || f?.row === 'phongBan';
                 if (isPhongBan) {
-                    const shouldChangeToCoQuan = isLeader && !checkRoleGroup?.isTruongPhong;
+                    const shouldChangeToCoQuan = isLeader;
                     const labelText = shouldChangeToCoQuan ? "Cơ quan, đơn vị" : "Phòng ban";
                     title = labelText;
                     label = labelText;

@@ -124,7 +124,11 @@ const BlockItem = React.memo(({ id, dragHandleProps, data, listPropsObj, actions
 		case "employeeStatus":
 			return <LeadEmployeeStatusCard data={data.employeeStatus} onActionClick={functions?.handleViewAllEmployeeStatus} dragHandleNode={dragHandleNode} />;
 		case "approvals":
-			return <LeadApprovalCard data={data.approvals} listProps={listPropsObj} onLoadMore={functions.onLoadMoreApprovals} onActionClick={actions?.onApprovalViewAll} onItemClick={functions.createItemClickHandler} dragHandleNode={dragHandleNode} />;
+			return (
+				<div id="approvals-section">
+					<LeadApprovalCard data={data.approvals} listProps={listPropsObj} onLoadMore={functions.onLoadMoreApprovals} onActionClick={actions?.onApprovalViewAll} onItemClick={functions.createItemClickHandler} dragHandleNode={dragHandleNode} />
+				</div>
+			);
 		case "documents":
 			return <LeadDocumentCard data={data.documents} onActionClick={functions.handleViewAllDocument} onItemClick={functions.createItemClickHandler} dragHandleNode={dragHandleNode} />;
 		case "heatmap":
@@ -173,11 +177,29 @@ const LeadDashboard = ({
 	const [statDetailJobDialogOpen, setStatDetailJobDialogOpen] = useState(false);
 
 	const handleStatBlockClick = useCallback((blockInfo, parentStat) => {
-		if (parentStat.id === 'tasks-room') {
+		if (parentStat.id === 'tasks-room' || parentStat.id === 'documents-month') {
 			setSelectedStatBlock({ ...blockInfo, parentCard: parentStat });
 			setStatDetailJobDialogOpen(true);
+		} else if (parentStat.id === 'approvals-waiting') {
+			const element = document.getElementById('approvals-section');
+			if (element) {
+				element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+			}
+		} else if (parentStat.id === 'team-performance') {
+			const arrPathReports = ["/statisticsAndReports", "/statistics-reports", "/gantt", "/statistics/job"];
+			const month = new Date().getMonth() + 1;
+			const year = new Date().getFullYear();
+			navigateToArr(arrPathReports, {
+				state: {
+					selectedTable: 'columnsPerformanceJobPerson',
+					reportType: 'personal',
+					month,
+					year,
+					autoGenerate: true
+				}
+			});
 		}
-	}, []);
+	}, [navigateToArr]);
 
 	const handleCloseStatDetailDialog = useCallback(() => {
 		setStatDetailJobDialogOpen(false);

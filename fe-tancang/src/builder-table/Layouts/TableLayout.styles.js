@@ -3,7 +3,7 @@ import { Box } from '@mui/material';
 import { SkyBox } from '@styles/SkyStyles';
 
 export const DropZoneBox = styled(Box, {
-  shouldForwardProp: (prop) => prop !== 'isSmall',
+  shouldForwardProp: (prop) => prop !== 'isSmall' && prop !== 'mode',
 })(({ theme, mode, isSmall }) => ({
   display: mode === 'builder' ? 'flex' : 'none', // ✅ Ẩn hoàn toàn khi không ở builder mode
   alignItems: 'center',
@@ -48,7 +48,9 @@ export const SubtabRowWrapper = styled(Box)({
   marginBottom: '8px',
 });
 
-export const SubtabChildrenBox = styled(SkyBox)(({ theme, subtabChildrenLength, mode }) => ({
+export const SubtabChildrenBox = styled(SkyBox, {
+  shouldForwardProp: (prop) => prop !== 'subtabChildrenLength' && prop !== 'mode',
+})(({ theme, subtabChildrenLength, mode }) => ({
   display: subtabChildrenLength || mode === "builder" ? "flex" : "none",
   width: "100%",
   alignItems: "flex-end",
@@ -113,7 +115,9 @@ export const TabLayoutStyle = styled(Box, {
     : null),
 }));
 
-export const SearchChildrenBox = styled(Box)(({ theme, searchChildrenLength, mode, isDialogKey }) => ({
+export const SearchChildrenBox = styled(Box, {
+  shouldForwardProp: (prop) => prop !== 'searchChildrenLength' && prop !== 'mode' && prop !== 'isDialogKey',
+})(({ theme, searchChildrenLength, mode, isDialogKey }) => ({
   display: searchChildrenLength || mode === "builder" || isDialogKey ? "flex" : "none",
   width: "100%",
   justifyContent: isDialogKey ? "flex-end" : "space-between",
@@ -178,7 +182,9 @@ export const TableDropZoneBox = styled(Box)(({theme}) => ({
   },
 }));
 
-export const PaginationWrapper = styled(Box)(({ theme, isNoPadding }) => ({
+export const PaginationWrapper = styled(Box, {
+  shouldForwardProp: (prop) => prop !== 'isNoPadding',
+})(({ theme, isNoPadding }) => ({
   display: 'flex',
   justifyContent: 'center',
   alignItems: 'center',
@@ -199,7 +205,19 @@ export const PaginationWrapper = styled(Box)(({ theme, isNoPadding }) => ({
   },
 }));
 
-export const ColumnActionsV4 = styled(Box)(({ 
+export const ColumnActionsV4 = styled(Box, {
+  shouldForwardProp: (prop) => ![
+    'isminHeight', 
+    'isminWidth',
+    'iswidth',
+    'isposition',
+    'iscursor', 
+    'istransition', 
+    'isborder',
+    'isoutline',
+    'isFlex'
+  ].includes(prop),
+})(({ 
   isminHeight, 
   isminWidth,
   iswidth,
@@ -221,7 +239,9 @@ export const ColumnActionsV4 = styled(Box)(({
   flex: isFlex,
 }));
 
-export const EmptyColumnBox = styled(Box)(({ theme, isborder }) => ({
+export const EmptyColumnBox = styled(Box, {
+  shouldForwardProp: (prop) => prop !== 'isborder',
+})(({ theme, isborder }) => ({
   textAlign: "center",
   color: "#aaa",
   width: "100%",

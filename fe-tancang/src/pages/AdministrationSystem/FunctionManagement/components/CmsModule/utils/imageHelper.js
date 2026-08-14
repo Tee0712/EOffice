@@ -20,7 +20,7 @@ export const withPublic = (url) => {
 };
 
 export const getImageUrl = (item, size = "medium") => {
-    if (!item) return "https://via.placeholder.com/400x250?text=No+Image";
+    if (!item) return DEFAULT_NEWS_THUMBNAIL;
 
     // Type video, image or album with specific thumbnail file id
     if ((item.type === "video" || item.type === "image" || item.type === "album") && item.thumbnailFileId) {
@@ -63,7 +63,7 @@ export const getImageUrl = (item, size = "medium") => {
     }
 
     // Default Fallback
-    return "https://via.placeholder.com/400x250?text=No+Image";
+    return DEFAULT_NEWS_THUMBNAIL;
 };
 
 /**

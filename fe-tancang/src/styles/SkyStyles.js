@@ -142,7 +142,9 @@ export const SkyClickAwayListener = styled(ClickAwayListener)(() => ({
 // Typography
 // ==========================================
 
-export const SkyTypography = styled(Typography)(({ theme, isTextAlign }) => ({
+export const SkyTypography = styled(Typography, {
+  shouldForwardProp: (prop) => prop !== "isTextAlign" && prop !== "styledMarginBottom",
+})(({ theme, isTextAlign }) => ({
 	color: theme.palette.text.primary,
 	textAlign: isTextAlign ? "center" : "unset",
 }));

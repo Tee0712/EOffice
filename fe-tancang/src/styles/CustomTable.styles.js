@@ -37,7 +37,19 @@ import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import { SkyBox } from "./SkyStyles";
 
-export const StyledPaper = styled("div")(({ theme, isInsideDialog, autoHeight, fixedHeight, customMaxHeight, styledMaxHeight, disablePaperHeight ,noPadding, fillHeight}) => ({
+export const StyledPaper = styled("div", {
+  shouldForwardProp: (prop) =>
+    ![
+      "isInsideDialog",
+      "autoHeight",
+      "fixedHeight",
+      "customMaxHeight",
+      "styledMaxHeight",
+      "disablePaperHeight",
+      "noPadding",
+      "fillHeight",
+    ].includes(prop),
+})(({ theme, isInsideDialog, autoHeight, fixedHeight, customMaxHeight, styledMaxHeight, disablePaperHeight ,noPadding, fillHeight}) => ({
   display: "flex",
   flexDirection: "column",
   flex: fillHeight ? 1 : undefined,
@@ -198,11 +210,15 @@ export const StyledToolbarGantt = styled(Toolbar)(({ theme }) => ({
   },
 }));
 
-export const StyledToolbarLoadmore = styled(StyledToolbar)(({ theme, pdBottom }) => ({
+export const StyledToolbarLoadmore = styled(StyledToolbar, {
+  shouldForwardProp: (prop) => prop !== "pdBottom",
+})(({ theme, pdBottom }) => ({
   marginBottom: pdBottom ? theme.spacing(pdBottom) : 0
 }));
 
-export const SearchContainer = styled(SkyBox)(({ theme, noPaddingLeft }) => ({
+export const SearchContainer = styled(SkyBox, {
+  shouldForwardProp: (prop) => prop !== "noPaddingLeft",
+})(({ theme, noPaddingLeft }) => ({
   display: "flex",
   // flexGrow: 1, // Cho phép container co giãn
   alignItems: "center",
@@ -529,7 +545,10 @@ export const ToolbarContent = styled(SkyBox)(() => ({
 
 // Removed duplicate ReportSelectBox from here
 
-export const ActionsContainer = styled(SkyBox)(({ theme, styleJustifyContent, $isModern, $forceFullWidth }) => ({
+export const ActionsContainer = styled(SkyBox, {
+  shouldForwardProp: (prop) =>
+    !["styleJustifyContent", "$isModern", "$forceFullWidth"].includes(prop),
+})(({ theme, styleJustifyContent, $isModern, $forceFullWidth }) => ({
   display: "flex",
   flexWrap: "wrap",
   justifyContent: styleJustifyContent || "flex-end",
@@ -625,7 +644,9 @@ export const PaginationContainerStyled = styled(SkyBox)(({ theme }) => ({
       padding: "4px",
     },
   },
-}));export const TopActionsContainer = styled(SkyBox)(({ styleJustifyContent }) => ({
+}));export const TopActionsContainer = styled(SkyBox, {
+  shouldForwardProp: (prop) => prop !== "styleJustifyContent",
+})(({ styleJustifyContent }) => ({
   display: "flex",
   justifyContent: styleJustifyContent || "space-between",
   paddingTop: 8, // XÓA HOÀN TOÀN
@@ -857,7 +878,9 @@ export const StyledSearchFieldLoadmore = styled(CustomInputBase, {
   },
 }));
 
-export const StyledTableHead = styled(TableHead)(({ theme, styleColor }) => {
+export const StyledTableHead = styled(TableHead, {
+  shouldForwardProp: (prop) => prop !== "styleColor",
+})(({ theme, styleColor }) => {
   const headerBorderWidth = theme.components?.MuiTableCell?.styleOverrides?.root?.borderWidth || "1px";
   const headerBorderColor = theme.palette.mode === "dark" ? theme.palette.divider : "#dee2e6";
   const headerBg = theme.palette.mode === "dark" ? "#1e293b" : "#f9fafb";
@@ -883,7 +906,10 @@ export const StyledTableHead = styled(TableHead)(({ theme, styleColor }) => {
   };
 });
 
-export const StyledTableContainer = styled(TableContainer)(
+export const StyledTableContainer = styled(TableContainer, {
+  shouldForwardProp: (prop) =>
+    !["isMaxHeight", "customMaxHeight", "autoHeight", "disablePaperHeight"].includes(prop),
+})(
   ({ theme, isMaxHeight, customMaxHeight, autoHeight, disablePaperHeight }) => ({
     flex: 1,
     overflowY: (autoHeight || disablePaperHeight) ? "visible" : "auto",
@@ -897,7 +923,10 @@ export const StyledTableContainer = styled(TableContainer)(
       : (isMaxHeight ? "calc(100vh - 420px)" : "unset"),
   })
 );
-export const StyleTableContainer = styled(TableContainer)(
+export const StyleTableContainer = styled(TableContainer, {
+  shouldForwardProp: (prop) =>
+    !["isMaxHeight", "customMaxHeight", "autoHeight", "disablePaperHeight"].includes(prop),
+})(
   ({ theme, isMaxHeight, customMaxHeight, autoHeight, disablePaperHeight }) => ({
     flex: 1,
     overflowY: (autoHeight || disablePaperHeight) ? "visible" : "auto",
@@ -923,7 +952,10 @@ export const StyledTable = styled(Table, {
   border: styleBorder || null,
 }));
 
-export const StyledTableBorder = styled(Table)(
+export const StyledTableBorder = styled(Table, {
+  shouldForwardProp: (prop) =>
+    !["styleBorderCollapse", "styleBorder", "styleTableLayout"].includes(prop),
+})(
   ({ styleBorderCollapse, styleBorder, styleTableLayout }) => ({
     tableLayout: styleTableLayout || "auto", // Thêm tableLayout
     borderCollapse: styleBorderCollapse || "collapse", // ← Đổi default từ "separate" → "collapse"
@@ -1830,7 +1862,9 @@ export const STTHeaderCell = styled(StyledTableCell)({
   width: "50px",
 });
 
-export const CheckboxBodyCell = styled(TableCell)(({ theme, index }) => ({
+export const CheckboxBodyCell = styled(TableCell, {
+  shouldForwardProp: (prop) => prop !== "index",
+})(({ theme, index }) => ({
   // Fix cứng độ rộng
   width: "50px !important",
   minWidth: "50px !important",
@@ -1948,7 +1982,9 @@ export const CheckboxBodyCell = styled(TableCell)(({ theme, index }) => ({
 
 // 🔒 Component cho cột STT trong body rows
 
-export const STTBodyCell = styled(TableCell)(({ theme, index }) => ({
+export const STTBodyCell = styled(TableCell, {
+  shouldForwardProp: (prop) => prop !== "index",
+})(({ theme, index }) => ({
   // Fix cứng độ rộng
   width: "50px !important",
   minWidth: "50px !important",
@@ -2011,7 +2047,9 @@ export const STTBodyCell = styled(TableCell)(({ theme, index }) => ({
   userSelect: "none",
 }));
 
-export const StyledButton = styled(Button)(({ iscolor }) => ({
+export const StyledButton = styled(Button, {
+  shouldForwardProp: (prop) => prop !== "iscolor",
+})(({ iscolor }) => ({
   borderRadius: "10px",
   height: 40,
   width: 40,
@@ -2128,7 +2166,9 @@ export const SquareIconActionButton = styled(StyledButton)(() => ({
   borderRadius: "8px",
 }));
 
-export const StyledSearchButton = styled(Button)(({ theme, iscolor }) => ({
+export const StyledSearchButton = styled(Button, {
+  shouldForwardProp: (prop) => prop !== "iscolor",
+})(({ theme, iscolor }) => ({
   height:
     theme.components?.MuiOutlinedInput?.styleOverrides?.root?.height || 40,
   width: theme.components?.MuiOutlinedInput?.styleOverrides?.root?.height || 40,
@@ -2349,7 +2389,9 @@ export const SortIconContainer = styled(SkyBox)(() => ({
   marginLeft: 4,
 }));
 
-export const StyledArrowUp = styled(ArrowDropUp)(({ theme, isActive }) => ({
+export const StyledArrowUp = styled(ArrowDropUp, {
+  shouldForwardProp: (prop) => prop !== "isActive",
+})(({ theme, isActive }) => ({
   position: "absolute",
   top: -3,
   fontSize: "20px",
@@ -2395,7 +2437,9 @@ export const DeleteSelectedButton = styled(StyledButton)(({ theme }) => ({
   },
 }));
 
-export const StyledArrowDown = styled(ArrowDropDown)(({ theme, isActive }) => ({
+export const StyledArrowDown = styled(ArrowDropDown, {
+  shouldForwardProp: (prop) => prop !== "isActive",
+})(({ theme, isActive }) => ({
   position: "absolute",
   bottom: -4,
   fontSize: "20px",

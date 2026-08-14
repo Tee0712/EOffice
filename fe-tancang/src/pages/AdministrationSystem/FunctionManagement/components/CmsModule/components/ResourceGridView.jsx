@@ -1668,7 +1668,7 @@ export default function ResourceGridView() {
       />
 
       {/* eslint-disable-next-line react/no-unknown-property */}
-      <style jsx>{`
+      <style>{`
         /* Skeleton Loading Styles */
         .skeleton {
           background: #eee;
@@ -3371,7 +3371,7 @@ const InternalResourceVideoPlayer = ({ item, videoUrl, onClose, isLiked, onLike,
       </div>
 
       {/* eslint-disable-next-line react/no-unknown-property */}
-      <style jsx>{`
+      <style>{`
         .rgv-video-modal-wrap { position: relative; aspect-ratio: 16/9; background: #000; }
         .rgv-video-header {
           position: absolute;

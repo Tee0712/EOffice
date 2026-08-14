@@ -2157,7 +2157,7 @@ export default function NewsDetailView({ newsId, onFileClick }) {
         </aside>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .nd-page-wrapper {
           background: transparent;
           width: 100%;
@@ -2775,7 +2775,7 @@ export default function NewsDetailView({ newsId, onFileClick }) {
       `}</style>
 
       {/* Global CSS for Raw HTML Content (dangerouslySetInnerHTML) */}
-      <style jsx global>{`
+      <style>{`
         .nd-article-body img {
           width: 100% !important;
           height: auto !important;
@@ -2867,7 +2867,7 @@ export default function NewsDetailView({ newsId, onFileClick }) {
       `}</style>
 
       {/* Comment Uploads Preview */}
-      <style jsx>{`
+      <style>{`
         .nd-comment-uploads-preview {
           display: flex;
           flex-wrap: wrap;

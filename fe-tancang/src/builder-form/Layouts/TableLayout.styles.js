@@ -82,7 +82,7 @@ export const DropZone = styled(Box, {
 }));
 
 export const ChildWrapper = styled(Box, {
-  shouldForwardProp: (prop) => prop !== "isBuilder",
+  shouldForwardProp: (prop) => prop !== "isBuilder" && prop !== "isFlex",
 })(({ isBuilder, isFlex }) => ({
   display: "flex",
   alignItems: "center",

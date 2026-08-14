@@ -800,6 +800,7 @@ function ViewsRecommendations({ open, onClose, data, documentId, sharedComponent
         open={dispatchProcessOpen}
         onClose={handleCloseDispatchDialog}
         onSuccess={handleConfirmDispatch}
+        isChild={true}
         data={displayData}
         sharedComponents={sharedComponents}
       />
@@ -865,6 +866,7 @@ function ViewsRecommendations({ open, onClose, data, documentId, sharedComponent
         open={resultUpdateOpen}
         onClose={handleCloseResultUpdate}
         onSuccess={handleConfirmResultUpdate}
+        isChild={true}
         data={displayData}
       />
 

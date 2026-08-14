@@ -110,7 +110,7 @@ const TaskBadge = styled(Box)({
   fontSize: "0.75rem",
 });
 
-function DispatchProcess({ open, onClose, data, sharedComponents, onSuccess }) {
+function DispatchProcess({ open, onClose, data, sharedComponents, onSuccess, isChild = false, setReloadData }) {
   const { InputComponents, DatePicker, toast } = sharedComponents;
 
   // Wrapper components to move labels above inputs
@@ -323,7 +323,7 @@ function DispatchProcess({ open, onClose, data, sharedComponents, onSuccess }) {
     [crmSource]
   );
 
-  useEffect(() => {
+  const fetchData = useCallback(() => {
     if (open && data) {
       const id = data.id || data._id;
       if (id) {
@@ -341,6 +341,10 @@ function DispatchProcess({ open, onClose, data, sharedComponents, onSuccess }) {
       }
     }
   }, [open, data, toast]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   useEffect(() => {
     if (open) {
@@ -404,15 +408,20 @@ function DispatchProcess({ open, onClose, data, sharedComponents, onSuccess }) {
       await axiosInstance.patch(`${API_REFLECT_SUGGESTIONS}/${id}/dispatch`, payload);
       
       toast("Gửi điều phối thành công!", "success");
-      onSuccess?.();
       setConfirmDialogOpen(false);
-      onClose();
+      if (isChild) {
+        onSuccess?.();
+        onClose();
+      } else {
+        fetchData();
+        setReloadData?.(prev => prev + 1);
+      }
     } catch (error) {
       toast(error?.response?.data?.message || "Gửi điều phối thất bại!", "error");
     } finally {
       setIsSubmitting(false);
     }
-  }, [displayData, deadlineType, customDeadline, note, unitId, processorId, toast, onSuccess, onClose, resolvedNumDay]);
+  }, [displayData, deadlineType, customDeadline, note, unitId, processorId, toast, onSuccess, onClose, isChild, fetchData, setReloadData, resolvedNumDay]);
 
   return (
     <CustomSwipper

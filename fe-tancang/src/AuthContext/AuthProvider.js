@@ -42,114 +42,46 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Đăng nhập qua SSO Keycloak (khi người dùng chủ động click hoặc cấu hình yêu cầu)
   const login = useCallback(() => {
     const currentPath = getCurrentRelativePath();
     if (shouldStoreRedirectPath(currentPath)) {
       sessionStorage.setItem(POST_LOGIN_REDIRECT_KEY, currentPath);
     }
 
-    // Chế độ redirect về FE: Truyền redirect_uri trỏ về FE để Keycloak biết đường quay lại
     const redirectUri = window.location.origin;
     window.location.href = `${APP_BASE}/api/auth-keycloak/login?redirect_uri=${encodeURIComponent(redirectUri)}`;
   }, []);
 
-  const logout = useCallback(() => {
-    const idToken = localStorage.getItem("id_token");
-    localStorage.removeItem("token");
-    localStorage.removeItem("id_token");
-    localStorage.removeItem("token_app");
-    localStorage.removeItem("keycloak-token");
-    localStorage.removeItem("keycloak-id-token");
-    localStorage.removeItem("tokenUser");
-    localStorage.removeItem("userData");
-    Object.keys(sessionStorage).forEach((key) => {
-   if (key.startsWith("FORM_CONFIG_")) {
-     sessionStorage.removeItem(key);
-    }
-   });
-    // Gọi backend logout để xóa session trên Keycloak
-    const logoutUrl = new URL(API_LOGOUT_KEYCLOAK);
-    if (idToken) logoutUrl.searchParams.append("id_token", idToken);
-    logoutUrl.searchParams.append("redirect_uri", window.location.origin);
-    
-    window.location.href = logoutUrl.toString();
-  }, []);
-
-  useEffect(() => {
-    const verifyAuth = async () => {
+  // Đăng nhập nội bộ (Local) với username & password
+  const loginLocal = useCallback(
+    async ({ username, password }) => {
+      setLoading(true);
+      setError(null);
       try {
-        const params = new URLSearchParams(window.location.search);
-        const code = params.get("code");
+        const response = await axios.post(`${APP_BASE}/api/auth-basic/login`, {
+          username,
+          password,
+        });
 
-        // 1. Luồng Exchange Code: Nếu có code trên URL, gọi API để đổi lấy token
-        if (code) {
-          setLoading(true);
-          try {
-            const redirectUri = window.location.origin;
-            const response = await axios.post(`${APP_BASE}/api/auth-keycloak/exchange-code`, {
-              code,
-              redirectUri
-            });
-
-            if (response.data?.access_token) {
-              const { 
-                access_token: accessToken, 
-                id_token: idToken, 
-                refresh_token: refreshToken 
-              } = response.data;
-              localStorage.setItem("token", accessToken);
-              persistTokenRefreshMetadata(response.data);
-              if (idToken) localStorage.setItem("id_token", idToken);
-              if (refreshToken) localStorage.setItem("refresh_token", refreshToken);
-
-              // 🧹 Dọn dẹp các key cũ
-              localStorage.removeItem("keycloak-token");
-              localStorage.removeItem("keycloak-id-token");
-              localStorage.removeItem("token_app");
-            }
-          } catch (exchangeErr) {
-            logger.error("Exchange code failed", exchangeErr);
-            // Không set error ở đây để cho phép fallback hoặc thử lại
-          } finally {
-            // Xóa query params khỏi URL ngay lập tức để tránh lộ code
-            const newUrl = window.location.origin + window.location.pathname;
-            window.history.replaceState({}, document.title, newUrl);
-          }
-        }
-
-        // 2. Hỗ trợ luồng BE Callback cũ hoặc fallback: Nhận token trực tiếp từ URL
-        const tokenFromCallback = params.get("token");
-        const idTokenFromCallback = params.get("id_token");
-        const refreshTokenFromCallback = params.get("refresh_token");
-
-        if (tokenFromCallback) {
-          // Lưu token do BE callback gửi về vào localStorage
-          localStorage.setItem("token", tokenFromCallback);
-          if (idTokenFromCallback) localStorage.setItem("id_token", idTokenFromCallback);
-          if (refreshTokenFromCallback) localStorage.setItem("refresh_token", refreshTokenFromCallback);
-
-          // 🧹 Dọn dẹp các key cũ
-          localStorage.removeItem("keycloak-token");
-          localStorage.removeItem("keycloak-id-token");
-          localStorage.removeItem("token_app");
-          localStorage.removeItem("keycloak_id_token");
-
-          // Xóa query params khỏi URL ngay lập tức để tránh token lưu trong history
-          const newUrl = window.location.origin + window.location.pathname;
-          window.history.replaceState({}, document.title, newUrl);
-        }
-
-        const token = localStorage.getItem("token");
-
+        const token = response.data?.token || response.data?.access_token;
         if (!token) {
-          setLoading(false);
-          login(); // Nếu chưa có token thì chuyển sang login
-          return;
+          throw new Error(response.data?.message || "Đăng nhập thất bại");
         }
 
-        // 2. Gọi thunk redux để lấy thông tin user và set vào state.auth.dataUser
+        localStorage.setItem("token", token);
+        if (response.data?.refresh_token) {
+          localStorage.setItem("refresh_token", response.data.refresh_token);
+        }
+        persistTokenRefreshMetadata(response.data);
+
+        // Xóa các key cũ
+        localStorage.removeItem("keycloak-token");
+        localStorage.removeItem("keycloak-id-token");
+        localStorage.removeItem("token_app");
+
+        // Xác thực lại session
         const profile = await dispatch(fetchCurrentUserMe()).unwrap();
-        
         if (profile && profile.loggedIn !== false) {
           setAuthenticated(true);
           setUser({
@@ -163,48 +95,187 @@ export const AuthProvider = ({ children }) => {
               profileImage: profile.user?.profileImage,
             },
             roles: profile.roles || [],
-            isSuperAdmin: profile.isSuperAdmin
+            isSuperAdmin: profile.isSuperAdmin,
           });
 
           const savedRedirectPath = sessionStorage.getItem(POST_LOGIN_REDIRECT_KEY);
-          const currentPath = getCurrentRelativePath();
-          if (savedRedirectPath && savedRedirectPath !== currentPath) {
+          if (savedRedirectPath) {
             sessionStorage.removeItem(POST_LOGIN_REDIRECT_KEY);
             window.location.replace(savedRedirectPath);
-            return;
           }
-
-          if (savedRedirectPath && savedRedirectPath === currentPath) {
-            sessionStorage.removeItem(POST_LOGIN_REDIRECT_KEY);
-          }
-        } else {
-          // Token không hợp lệ hoặc hết hạn
-          localStorage.removeItem("token");
-          localStorage.removeItem("id_token");
-          login();
         }
+        return { success: true };
       } catch (err) {
-        logger.error("Auth verify error", err.response);
-        // Nếu lỗi 401 hoặc lỗi kết nối, có thể cần login lại
-        if (err.response?.status === 401) {
-          localStorage.removeItem("token");
-          login();
-        } else {
-          setError(
-            err.response?.message || 
-            err?.message || 
-            err.response?.data?.message || 
-            err.response?.data?.error || 
-            err ||
-            "Không thể truy cập. Vui lòng thử lại.");
-        }
+        const msg =
+          err.response?.data?.message ||
+          err.message ||
+          "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.";
+        throw new Error(msg);
       } finally {
         setLoading(false);
       }
-    };
+    },
+    [dispatch]
+  );
 
+  // Đăng xuất
+  const logout = useCallback(() => {
+    const idToken = localStorage.getItem("id_token");
+    localStorage.removeItem("token");
+    localStorage.removeItem("id_token");
+    localStorage.removeItem("token_app");
+    localStorage.removeItem("keycloak-token");
+    localStorage.removeItem("keycloak-id-token");
+    localStorage.removeItem("tokenUser");
+    localStorage.removeItem("userData");
+    localStorage.removeItem("refresh_token");
+
+    Object.keys(sessionStorage).forEach((key) => {
+      if (key.startsWith("FORM_CONFIG_")) {
+        sessionStorage.removeItem(key);
+      }
+    });
+
+    setAuthenticated(false);
+    setUser(null);
+
+    // Nếu có idToken Keycloak thì gọi logout SSO, ngược lại về trang login
+    if (idToken) {
+      const logoutUrl = new URL(API_LOGOUT_KEYCLOAK);
+      logoutUrl.searchParams.append("id_token", idToken);
+      logoutUrl.searchParams.append("redirect_uri", window.location.origin);
+      window.location.href = logoutUrl.toString();
+    } else {
+      window.location.href = "/login";
+    }
+  }, []);
+
+  const verifyAuth = useCallback(async () => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get("code");
+
+      // 1. Luồng Exchange Code: Nếu có code trên URL, gọi API để đổi lấy token
+      if (code) {
+        setLoading(true);
+        try {
+          const redirectUri = window.location.origin;
+          const response = await axios.post(`${APP_BASE}/api/auth-keycloak/exchange-code`, {
+            code,
+            redirectUri,
+          });
+
+          if (response.data?.access_token) {
+            const {
+              access_token: accessToken,
+              id_token: idToken,
+              refresh_token: refreshToken,
+            } = response.data;
+            localStorage.setItem("token", accessToken);
+            persistTokenRefreshMetadata(response.data);
+            if (idToken) localStorage.setItem("id_token", idToken);
+            if (refreshToken) localStorage.setItem("refresh_token", refreshToken);
+
+            localStorage.removeItem("keycloak-token");
+            localStorage.removeItem("keycloak-id-token");
+            localStorage.removeItem("token_app");
+          }
+        } catch (exchangeErr) {
+          console.error("Exchange code failed", exchangeErr);
+        } finally {
+          const newUrl = window.location.origin + window.location.pathname;
+          window.history.replaceState({}, document.title, newUrl);
+        }
+      }
+
+      // 2. Hỗ trợ luồng BE Callback cũ hoặc fallback: Nhận token trực tiếp từ URL
+      const tokenFromCallback = params.get("token");
+      const idTokenFromCallback = params.get("id_token");
+      const refreshTokenFromCallback = params.get("refresh_token");
+
+      if (tokenFromCallback) {
+        localStorage.setItem("token", tokenFromCallback);
+        if (idTokenFromCallback) localStorage.setItem("id_token", idTokenFromCallback);
+        if (refreshTokenFromCallback) localStorage.setItem("refresh_token", refreshTokenFromCallback);
+
+        localStorage.removeItem("keycloak-token");
+        localStorage.removeItem("keycloak-id-token");
+        localStorage.removeItem("token_app");
+        localStorage.removeItem("keycloak_id_token");
+
+        const newUrl = window.location.origin + window.location.pathname;
+        window.history.replaceState({}, document.title, newUrl);
+      }
+
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        setAuthenticated(false);
+        setUser(null);
+        setLoading(false);
+        return;
+      }
+
+      // Gọi thunk redux để lấy thông tin user
+      const profile = await dispatch(fetchCurrentUserMe()).unwrap();
+
+      if (profile && profile.loggedIn !== false) {
+        setAuthenticated(true);
+        setUser({
+          user: {
+            ...profile.user,
+            user: profile.user?.user || profile.user?._id || profile.user?.id,
+            id: profile.user?._id || profile.user?.id,
+            username: profile.user?.username,
+            email: profile.user?.email || profile.user?.emailUser,
+            name: profile.user?.name || profile.user?.username,
+            profileImage: profile.user?.profileImage,
+          },
+          roles: profile.roles || [],
+          isSuperAdmin: profile.isSuperAdmin,
+        });
+
+        const savedRedirectPath = sessionStorage.getItem(POST_LOGIN_REDIRECT_KEY);
+        const currentPath = getCurrentRelativePath();
+        if (savedRedirectPath && savedRedirectPath !== currentPath) {
+          sessionStorage.removeItem(POST_LOGIN_REDIRECT_KEY);
+          window.location.replace(savedRedirectPath);
+          return;
+        }
+
+        if (savedRedirectPath && savedRedirectPath === currentPath) {
+          sessionStorage.removeItem(POST_LOGIN_REDIRECT_KEY);
+        }
+      } else {
+        localStorage.removeItem("token");
+        localStorage.removeItem("id_token");
+        setAuthenticated(false);
+        setUser(null);
+      }
+    } catch (err) {
+      if (err?.response?.status === 401 || err?.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("id_token");
+        setAuthenticated(false);
+        setUser(null);
+      } else {
+        if (window.location.pathname !== "/login") {
+          setError(
+            err.response?.data?.message ||
+              err.response?.message ||
+              err?.message ||
+              "Không thể truy cập. Vui lòng thử lại."
+          );
+        }
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [dispatch]);
+
+  useEffect(() => {
     verifyAuth();
-  }, [dispatch, login]);
+  }, [verifyAuth]);
 
   const handleWindowReload = useCallback(() => {
     window.location.reload();
@@ -220,9 +291,7 @@ export const AuthProvider = ({ children }) => {
             <SkySubmitButton onClick={handleWindowReload}>
               Tải lại trang
             </SkySubmitButton>
-            <SkyCancelButton onClick={logout}>
-              Đăng xuất
-            </SkyCancelButton>
+            <SkyCancelButton onClick={logout}>Đăng xuất</SkyCancelButton>
           </SkyFlexRowCenter>
         </SkyErrorCard>
       </SkyErrorOverlay>
@@ -242,12 +311,12 @@ export const AuthProvider = ({ children }) => {
         authenticated,
         error,
         login,
+        loginLocal,
         logout,
+        verifyAuth,
       }}
     >
-      {authenticated ? children : <Loading />}
+      {children}
     </AuthContext.Provider>
   );
 };
-
-

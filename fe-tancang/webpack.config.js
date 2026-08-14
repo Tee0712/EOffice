@@ -94,6 +94,7 @@ const config = {
     runtimeChunk: "single",
   },
   devServer: {
+    port: 8080,
     static: { directory: path.join(__dirname, "public") },
     compress: true,
     historyApiFallback: true,

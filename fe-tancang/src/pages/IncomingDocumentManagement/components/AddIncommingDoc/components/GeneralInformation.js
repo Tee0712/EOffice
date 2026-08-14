@@ -288,12 +288,12 @@ const GeneralInformation = ({
   useEffect(() => {
     if (!setValue || !documentDateValue || !receiveDateValue) return;
 
-    const arrivalDate = dayjs(documentDateValue);
-    const documentOnTextDate = dayjs(receiveDateValue);
+    const arrivalDate = dayjs(receiveDateValue);
+    const documentOnTextDate = dayjs(documentDateValue);
     if (!arrivalDate.isValid() || !documentOnTextDate.isValid()) return;
 
     if (documentOnTextDate.isAfter(arrivalDate, "day")) {
-      setValue("receiveDate", arrivalDate.toDate(), {
+      setValue("documentDate", arrivalDate.toDate(), {
         shouldValidate: true,
         shouldDirty: true,
       });
@@ -833,16 +833,16 @@ const GeneralInformation = ({
                     {/* ROW 3: NGÀY ĐẾN, NGÀY TRÊN VĂN BẢN, HẠN TRẢ LỜI */}
                     <Grid item xs={12} sm={isView ? 4 : 6} md={4}>
                       <Controller
-                        name="documentDate"
+                        name="receiveDate"
                         control={control}
                         render={({ field }) => (
                           <DatePicker
                             label="Ngày đến"
                             value={field.value || null}
                             onChange={field.onChange}
-                            error={!!errors?.documentDate}
+                            error={!!errors?.receiveDate}
                             disabled={isView}
-                            helperText={errors?.documentDate?.message}
+                            helperText={errors?.receiveDate?.message}
                             required={!isView}
                             restrictFuture
                             disableEndIcon={isView}
@@ -874,18 +874,19 @@ const GeneralInformation = ({
 
                     <Grid item xs={12} sm={isView ? 4 : 6} md={4}>
                       <Controller
-                        name="receiveDate"
+                        name="documentDate"
                         control={control}
                         render={({ field }) => (
                           <DatePicker
                             label="Ngày trên văn bản"
                             value={field.value || null}
                             onChange={field.onChange}
-                            maxDate={documentDateValue || undefined}
-                            error={!!errors?.receiveDate}
+                            maxDate={receiveDateValue || undefined}
+                            error={!!errors?.documentDate}
                             disabled={isView}
-                            helperText={errors?.receiveDate?.message}
+                            helperText={errors?.documentDate?.message}
                             required={!isView}
+                            restrictFuture
                             disableEndIcon={isView}
                           />
                         )}

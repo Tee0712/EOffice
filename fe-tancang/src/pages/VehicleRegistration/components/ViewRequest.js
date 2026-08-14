@@ -281,100 +281,87 @@ const ViewRequest = ({
     }
   }, [documentDetail]);
 
+  const fetchRequestDetails = React.useCallback(async () => {
+    const requestId = vehicleRegistrationId || documentId;
+    if (open && requestId) {
+      setIsLoading(true);
+      try {
+        const res = await api.get(`${API_VEHICLE_REQUEST}/${requestId}`);
+        const response = res.data;
+        
+        if (response && response.success) {
+          const vehicleData = response.data;
+          setIsCoordinated(vehicleData.isCoordinated === true);
+          setIsCreator(vehicleData.isCreator === true);
+          setDocumentDetail(response);
+          reset({
+            requestType: vehicleData.requestType,
+            departureTime: vehicleData.departureTime,
+            returnTime: vehicleData.returnTime,
+            departurePoint: vehicleData.departurePoint,
+            destination: vehicleData.destination,
+            passengerCount: vehicleData.passengerCount,
+            contactPerson: vehicleData.contactPerson,
+            contactPhone: vehicleData.contactPhone,
+            note: vehicleData.notes,
+            username: vehicleData.createdByInfo.name,
+            position: vehicleData.createdByInfo.position || "",
+            department: vehicleData.createdByInfo.department || "",
+            "created_at": vehicleData.createdByInfo.createdAt,
+          });
+        }
+      } catch (error) {
+        const errorMessage = error?.response?.data?.message || error?.message || "Không thể tải thông tin yêu cầu!";
+        toast(errorMessage, "error");
+        logger.error("Error fetching vehicle request:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  }, [open, vehicleRegistrationId, documentId, reset, toast]);
+
+  const fetchFiles = React.useCallback(async () => {
+    const requestId = vehicleRegistrationId || documentId;
+    if (requestId) {
+      try {
+        const response = await axiosInstance.get(`${APP_BASE}/api/files/by-object?object_type=vehicleRegistration&object_id=${requestId}`);
+        if (response) {
+          setFileList(response);
+        }
+      } catch (error) {
+        logger.error("Error fetching files:", error);
+      }
+    }
+  }, [vehicleRegistrationId, documentId]);
+
+  const fetchHistory = React.useCallback(async () => {
+    const requestId = vehicleRegistrationId || documentId;
+    if (requestId) {
+      try {
+        const res = await api.get(`${API_VEHICLE_REQUEST}/${requestId}/history`);
+        if (res.data) {
+          setHistoryData(res.data.map(item => ({
+            action: item.action,
+            opinion: item.opinion,
+            processor: item.processor,
+            time: "",
+            user: "",
+            department: "",
+            drivers: item?.details?.drivers,
+            order: item?.order,
+          })));
+        }
+      } catch (error) {
+        logger.error("Error fetching history:", error);
+      }
+    }
+  }, [vehicleRegistrationId, documentId]);
+
   useEffect(() => {
-    const fetchRequestDetails = async () => {
-      const requestId = vehicleRegistrationId || documentId;
-      if (open && requestId) {
-        setIsLoading(true);
-        try {
-          const res = await api.get(`${API_VEHICLE_REQUEST}/${requestId}`);
-          const response = res.data;
-          
-          if (response && response.success) {
-            const vehicleData = response.data;
-            setIsCoordinated(vehicleData.isCoordinated === true);
-            setIsCreator(vehicleData.isCreator === true);
-            setDocumentDetail(response);
-            reset({
-              requestType: vehicleData.requestType,
-              // priority: vehicleData.priority,
-              // isImportantGuest: vehicleData.isImportantGuest,
-              departureTime: vehicleData.departureTime,
-              returnTime: vehicleData.returnTime,
-              departurePoint: vehicleData.departurePoint,
-              destination: vehicleData.destination,
-              passengerCount: vehicleData.passengerCount,
-              contactPerson: vehicleData.contactPerson,
-              contactPhone: vehicleData.contactPhone,
-              // purpose: vehicleData.purpose,
-              note: vehicleData.notes,
-              username: vehicleData.createdByInfo.name,
-              position: vehicleData.createdByInfo.position || "",
-              department: vehicleData.createdByInfo.department || "",
-              "created_at": vehicleData.createdByInfo.createdAt,
-            });
-
-            // Fetch history from separate API now
-            // if (vehicleData.histories && Array.isArray(vehicleData.histories)) {
-            //   setHistoryData(vehicleData.histories.map(item => ({
-            //     action: item.action,
-            //     time: item.actionDate || item.time,
-            //     user: item.processor || item.user,
-            //     department: item.department || ""
-            //   })));
-            // }
-          }
-        } catch (error) {
-          const errorMessage = error?.response?.data?.message || error?.message || "Không thể tải thông tin yêu cầu!";
-          toast(errorMessage, "error");
-          logger.error("Error fetching vehicle request:", error);
-        } finally {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    const fetchFiles = async () => {
-      const requestId = vehicleRegistrationId || documentId;
-      if (requestId) {
-        try {
-          const response = await axiosInstance.get(`${APP_BASE}/api/files/by-object?object_type=vehicleRegistration&object_id=${requestId}`);
-          if (response) {
-            setFileList(response);
-          }
-        } catch (error) {
-          logger.error("Error fetching files:", error);
-        }
-      }
-    };
-
-    const fetchHistory = async () => {
-      const requestId = vehicleRegistrationId || documentId;
-      if (requestId) {
-        try {
-          const res = await api.get(`${API_VEHICLE_REQUEST}/${requestId}/history`);
-          if (res.data) {
-            setHistoryData(res.data.map(item => ({
-              action: item.action,
-              opinion: item.opinion,
-              processor: item.processor,
-              time: "",
-              user: "",
-              department: "",
-							drivers: item?.details?.drivers,
-							order: item?.order,
-            })));
-          }
-        } catch (error) {
-          logger.error("Error fetching history:", error);
-        }
-      }
-    };
-
     fetchRequestDetails();
     fetchFiles();
     fetchHistory();
-  }, [open, data?.id, reset, toast, vehicleRegistrationId, documentId]);
+  }, [fetchRequestDetails, fetchFiles, fetchHistory]);
 
   const handleCloseConfirmDialog = React.useCallback(() => {
    setOpenCoordinate(false)
@@ -392,9 +379,11 @@ const ViewRequest = ({
   const handleSuccessCoordination = React.useCallback(() => {
     setOpenCoordinate(false);
     setOpenRecoordinate(false);
-    onClose();
+    fetchRequestDetails();
+    fetchFiles();
+    fetchHistory();
     if (onSuccess) onSuccess();
-  }, [onClose, onSuccess]);
+  }, [onSuccess, fetchRequestDetails, fetchFiles, fetchHistory]);
 
   const handleFileMenuClick = React.useCallback((event) => {
     const fileId = event.currentTarget.getAttribute('data-file-id');
@@ -579,10 +568,16 @@ const ViewRequest = ({
           <FormButton
             dataDetail={dataForFormButton}
             onAction={handleProcessingAction}
-            setReloadData={onSuccess}
+            setReloadData={() => {
+              fetchRequestDetails();
+              fetchFiles();
+              fetchHistory();
+              onSuccess?.();
+            }}
             disabled={isLoading}
             sharedComponents={sharedComponents}
             onClose={onClose}
+            isView={true}
           />
         </StyleBoxButton>
               }

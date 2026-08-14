@@ -80,7 +80,7 @@ import { FlexGrowBox, FooterActions } from "@styles/BaseSwiper/BaseSwiper.style"
 import { StyledSectionTitle, StyledTitleWithToggle } from "@styles/RecordDestruction/RecordDestruction.styles";
 import { FileIconSvg } from "@assets/icons/FileIconSvg";
 import withFormWrapper from "@components/common/FormWrapper";
-import { NotificationContext } from "@components/NotificationContext";
+
 
 const ViewPassportRequest = (props) => {
 	const {
@@ -92,10 +92,7 @@ const ViewPassportRequest = (props) => {
 		setReloadData,
 		isActionMenu = true,
 		passportRequestId,
-		isFromNotification,
 	} = props;
-	const notifContext = React.useContext(NotificationContext);
-	const isNotif = Boolean(isFromNotification || notifContext?.isFromNotification);
 	const {
 		BaseSwipper,
 		InputComponents: BaseInput,
@@ -1403,10 +1400,7 @@ const ViewPassportRequest = (props) => {
 			setIsReloadingDetail(false);
 		}
 		setReloadData?.((prev) => !prev);
-		if (!isNotif) {
-			onClose?.();
-		}
-	}, [reloadRequestDetail, setReloadData, toast, isNotif, onClose]);
+	}, [reloadRequestDetail, setReloadData, toast]);
 
 	const handleOfficialHandoverSuccess = useCallback(async () => {
 		try {
@@ -1523,9 +1517,6 @@ const ViewPassportRequest = (props) => {
 					content: "",
 					subContent: "",
 				});
-				if (!isNotif) {
-					onClose?.();
-				}
 			} catch (error) {
 				const errorMessage =
 					error?.response?.data?.message ||
@@ -1534,7 +1525,7 @@ const ViewPassportRequest = (props) => {
 				toast(errorMessage, "error");
 			}
 		},
-		[dispatch, setReloadData, toast, id, resetCancelForm, reloadRequestDetail, isNotif, onClose]
+		[dispatch, setReloadData, toast, id, resetCancelForm, reloadRequestDetail]
 	);
 
 	const handleSave = useCallback(
@@ -1656,11 +1647,8 @@ const ViewPassportRequest = (props) => {
 				setIsReloadingDetail(false);
 			}
 			setReloadData?.((prev) => !prev);
-			if (!isNotif) {
-				onClose?.();
-			}
 		},
-		[openHandover, setReloadData, reloadRequestDetail, toast, isNotif, onClose]
+		[openHandover, setReloadData, reloadRequestDetail, toast]
 	);
 	const handleOpenViewHandoverMinutes = useCallback(() => {
 		setSelectedMinutesId(null);

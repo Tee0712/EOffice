@@ -59,7 +59,7 @@ const SectionTitleNoMarginWithBottom = styled(SectionTitleNoMargin)(({ theme }) 
 
 
 
-function ResultUpdateProcess({ open, onClose, data, sharedComponents, onSuccess }) {
+function ResultUpdateProcess({ open, onClose, data, sharedComponents, onSuccess, isChild = false, setReloadData }) {
   const { InputComponents, toast } = sharedComponents;
 
   const ViewInputComponents = useMemo(() => {
@@ -348,7 +348,7 @@ function ResultUpdateProcess({ open, onClose, data, sharedComponents, onSuccess 
     fileInputRef.current.click();
   }, []);
 
-  useEffect(() => {
+  const fetchData = useCallback(() => {
     if (open && data) {
       const id = data.id || data._id;
       if (id) {
@@ -366,6 +366,10 @@ function ResultUpdateProcess({ open, onClose, data, sharedComponents, onSuccess 
       }
     }
   }, [open, data, toast]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   useEffect(() => {
     if (open) {
@@ -417,14 +421,19 @@ function ResultUpdateProcess({ open, onClose, data, sharedComponents, onSuccess 
 
       toast("Hoàn tất cập nhật kết quả!", "success");
       setConfirmDialogOpen(false);
-      onSuccess?.();
-      onClose();
+      if (isChild) {
+        onSuccess?.();
+        onClose();
+      } else {
+        fetchData();
+        setReloadData?.(prev => prev + 1);
+      }
     } catch (error) {
       toast("Cập nhật kết quả thất bại!", "error");
     } finally {
       setLoading(false);
     }
-  }, [displayData, resultContent, note, files, toast, onSuccess, onClose]);
+  }, [displayData, resultContent, note, files, toast, onSuccess, onClose, isChild, fetchData, setReloadData]);
 
   return (
     <CustomSwipper

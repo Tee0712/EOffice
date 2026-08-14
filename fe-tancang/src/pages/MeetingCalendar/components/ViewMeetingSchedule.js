@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, useMemo, memo, useState, useRef  } from "react";
+import React, { useEffect, useCallback, useMemo, memo, useState, useRef } from "react";
 import {
   Grid,
   styled,
@@ -43,6 +43,7 @@ import {
 } from "@pages/IncomingDocumentManagement/components/AddIncommingDoc/components/AddIncommingDoc.styles";
 import FormButton from "@components/FormButton";
 import { typeFlagMap } from "@components/FormButton/constant";
+
 import * as yup from "yup";
 
 import dayjs from "dayjs";
@@ -1039,14 +1040,13 @@ const ViewMeetingSchedule = ({
       await axiosInstance.post(`${API_ADD_MEETING_SCHEDULE}/${meetingId}/${workItem?.id}/user-cancel-join`, payload);
       toast("Đã hủy tham gia cuộc họp", "success");
       setOpenCancelJoinConfirm(false);
-      onSuccess?.();
-      onClose();
+      handleReloadAll();
     } catch (error) {
       toast(error?.response?.data?.message || "Lỗi khi hủy tham gia cuộc họp", "error");
     } finally {
       setIsLoading(false);
     }
-  }, [meetingId, workItem, toast, onSuccess, onClose]);
+  }, [meetingId, workItem, toast, handleReloadAll]);
 
   const recurrenceSummary = useMemo(() => {
     return getRecurrenceSummaryText(meetingData?.recurrence);
@@ -1146,12 +1146,9 @@ const ViewMeetingSchedule = ({
     if (userRoles.isChairman || userRoles.isSecretary) {
       list.push({ label: "Điều hành cuộc họp", id: 'management' });
     }
-    if (userRoles.isChairman || userRoles.isSecretary) {
+    if (userRoles.isChairman || userRoles.isSecretary || userRoles.isParticipant || userRoles.isParticipantInCurrentUnit) {
       list.push({ label: "Kết luận cuộc họp", id: 'conclusion' });
     }
-    // if (userRoles.isChairman || userRoles.isSecretary || userRoles.isParticipant || userRoles.isParticipantInCurrentUnit) {
-    //   list.push({ label: "Kết luận cuộc họp", id: 'conclusion' });
-    // }
     return list;
   }, [userRoles, canAccessMeetingTabs]);
 
@@ -2213,11 +2210,18 @@ setTotalParticipants(data?.totalParticipants || 0);
     setOpenUpdateMeeting(false);
   }, []);
 
+  const handleReloadAll = useCallback(() => {
+    fetchMeetingDetails();
+    fetchMeetingTasks();
+    fetchParticipants();
+    fetchMeetingTasksList();
+    onSuccess?.();
+  }, [fetchMeetingDetails, fetchMeetingTasks, fetchParticipants, fetchMeetingTasksList, onSuccess]);
+
   const handleUpdateSuccess = useCallback(() => {
     setOpenUpdateMeeting(false);
-    onSuccess?.();
-    onClose();
-  }, [onSuccess, onClose]);
+    handleReloadAll();
+  }, [handleReloadAll]);
 
   const handleClose = useCallback(() => {
     onSuccess?.();
@@ -2288,8 +2292,7 @@ setTotalParticipants(data?.totalParticipants || 0);
                 <FormButton
                   dataDetail={dataForFormButton}
                   onAction={handleCustomAction}
-                  setReloadData={onSuccess} // Trigger refresh on success
-                  onClose={onClose}
+                  setReloadData={handleReloadAll}
                 />
               </Grid>
             </>

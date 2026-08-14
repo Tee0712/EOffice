@@ -136,7 +136,11 @@ const BlockWrapper = React.memo(({
 		case "workloadProjects":
 			return <PremiumWorkloadProjectsCard data={data} onItemClick={onItemClick} dragHandleNode={dragHandleNode} />;
 		case "approvals":
-			return <PremiumApprovalCard data={data} listProps={listProps} onLoadMore={onLoadMoreApprovals} onItemClick={onItemClick} dragHandleNode={dragHandleNode} />;
+			return (
+				<div id="ceo-approvals-section">
+					<PremiumApprovalCard data={data} listProps={listProps} onLoadMore={onLoadMoreApprovals} onItemClick={onItemClick} dragHandleNode={dragHandleNode} />
+				</div>
+			);
 		case "documents":
 			return <PremiumDocumentsCard data={data} onItemClick={onItemClick} dragHandleNode={dragHandleNode} />;
 		case "departmentTasks":
@@ -222,11 +226,18 @@ const BossDashboard = ({ data = {}, initialLayout, onLayoutChange, onLoadMoreApp
 	const [statDetailJobDialogOpen, setStatDetailJobDialogOpen] = useState(false);
 
 	const handleStatBlockClick = useCallback((blockInfo, parentStat) => {
-		if (parentStat?.id === "company-tasks") {
+		if (parentStat?.id === "company-tasks" || parentStat?.id === "company-documents") {
 			setSelectedStatBlock({ ...blockInfo, parentCard: parentStat });
 			setStatDetailJobDialogOpen(true);
+		} else if (parentStat?.id === "ceo-approvals") {
+			const element = document.getElementById("ceo-approvals-section");
+			if (element) {
+				element.scrollIntoView({ behavior: "smooth", block: "start" });
+			}
+		} else if (parentStat?.id === "total-employees") {
+			navigateTo(linkToCompanyWidePersonnel);
 		}
-	}, []);
+	}, [navigateTo]);
 
 	const handleCloseStatDetailDialog = useCallback(() => {
 		setStatDetailJobDialogOpen(false);

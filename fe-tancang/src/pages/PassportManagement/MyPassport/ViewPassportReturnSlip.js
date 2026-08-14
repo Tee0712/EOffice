@@ -29,7 +29,7 @@ import { cancelReturnPassportSlip, receiveReturnPassportSlip, rejectReturnPasspo
 import { useDispatch, useSelector } from "react-redux";
 import { SecondaryTypography, StatusWrapper, TitleBox } from "@pages/RecommendationsPage/components/RecommendationsForm.styles";
 import DOMPurify from "dompurify";
-import { NotificationContext } from "@components/NotificationContext";
+
 
 const ViewPassportReturnSlip = (props) => {
 	const {
@@ -40,10 +40,7 @@ const ViewPassportReturnSlip = (props) => {
 		id,
 		isView,
 		setReloadData,
-		isFromNotification,
 	} = props;
-	const notifContext = React.useContext(NotificationContext);
-	const isNotif = Boolean(isFromNotification || notifContext?.isFromNotification);
 	const {
 		BaseSwipper,
 		InputComponents: BaseInput,
@@ -218,11 +215,8 @@ const ViewPassportReturnSlip = (props) => {
 			if (setReloadData) {
 				setReloadData((prev) => prev + 1);
 			}
-			if (!isNotif) {
-				onClose?.();
-			}
 		}
-	}, [setReloadData, isNotif, onClose]);
+	}, [setReloadData]);
 
 	const handleOpenViewMinutes = useCallback(() => {
 		setOpenViewMinutes(true);
@@ -246,10 +240,7 @@ const ViewPassportReturnSlip = (props) => {
 		if (setReloadData) {
 			setReloadData((prev) => prev + 1);
 		}
-		if (!isNotif) {
-			onClose?.();
-		}
-	}, [setReloadData, isNotif, onClose]);
+	}, [setReloadData]);
 
 	const handleOpenRejectDialog = useCallback(() => {
 		setOpenRejectDialog(true);
@@ -268,9 +259,6 @@ const ViewPassportReturnSlip = (props) => {
 			if (setReloadData) {
 				setReloadData((prev) => prev + 1);
 			}
-			if (!isNotif) {
-				onClose?.();
-			}
 		} catch (error) {
 			const errorMessage =
 				error?.response?.data?.message ||
@@ -280,7 +268,7 @@ const ViewPassportReturnSlip = (props) => {
 		} finally {
 			setIsLoading(false);
 		}
-	}, [dispatch, id, setReloadData, toast, isNotif, onClose]);
+	}, [dispatch, id, setReloadData, toast]);
 
 	const handleCancelReturnSlip = useCallback(async () => {
 		try {
@@ -291,9 +279,6 @@ const ViewPassportReturnSlip = (props) => {
 			if (setReloadData) {
 				setReloadData((prev) => prev + 1);
 			}
-			if (!isNotif) {
-				onClose?.();
-			}
 		} catch (error) {
 			const errorMessage =
 				error?.response?.data?.message ||
@@ -303,7 +288,7 @@ const ViewPassportReturnSlip = (props) => {
 		} finally {
 			setIsLoading(false);
 		}
-	}, [dispatch, id, setReloadData, toast, isNotif, onClose]);
+	}, [dispatch, id, setReloadData, toast]);
 
 	const handleRejectReturnPassportSlip = useCallback(async (data) => {
 		try {
@@ -315,9 +300,6 @@ const ViewPassportReturnSlip = (props) => {
 				setReloadData((prev) => prev + 1);
 			}
 			handleCloseRejectDialog();
-			if (!isNotif) {
-				onClose?.();
-			}
 		} catch (error) {
 			const errorMessage =
 				error?.response?.data?.message ||
@@ -327,7 +309,7 @@ const ViewPassportReturnSlip = (props) => {
 		} finally {
 			setIsLoading(false);
 		}
-	}, [dispatch, id, setReloadData, toast, handleCloseRejectDialog, isNotif, onClose]);
+	}, [dispatch, id, setReloadData, toast, handleCloseRejectDialog]);
 
 	const buttonCreateVoucherReturnPassportSlip = useMemo(() => {
 		return dataDetailPassportsReturnSlip?.availableActions?.find((action) => action.actionGroup === "TAO_BIEN_BAN");

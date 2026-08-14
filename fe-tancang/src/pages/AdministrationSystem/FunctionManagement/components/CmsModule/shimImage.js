@@ -25,6 +25,25 @@ const Image = ({ src, alt, width, height, customClassName, className, customStyl
             return;
         }
 
+        // Kiểm tra xem có phải URL file nội bộ của backend cần Authorization header không
+        const isInternalApiUrl = () => {
+            try {
+                if (finalSrc.startsWith('/api/') || finalSrc.startsWith('api/')) return true;
+                if (finalSrc.startsWith('/') && !finalSrc.startsWith('//')) return false; // Static asset như /logotc.png
+                const parsed = new URL(finalSrc, window.location.origin);
+                if (parsed.pathname.includes('/files/view') || parsed.pathname.includes('/api/files')) return true;
+                return false;
+            } catch (e) {
+                return false;
+            }
+        };
+
+        // Nếu là ảnh ngoài (external URL như postimg, cdn...) hoặc static asset thì load trực tiếp bằng thẻ img
+        if (!isInternalApiUrl()) {
+            setBlobUrl(finalSrc);
+            return;
+        }
+
         // 1. Check cache
         const cached = getCachedAuthBlob(finalSrc);
         if (cached) {

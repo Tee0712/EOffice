@@ -109,7 +109,11 @@ const EmployeeDashboard = ({ data, initialLayout, onLayoutChange }) => {
 
 	const handleStatBlockClick = useCallback((blockInfo, parentStat) => {
 		logger.log("handleStatBlockClick", blockInfo, parentStat);
-		if (parentStat.id === 'tasks-overview') {
+		if (
+			parentStat.id === 'tasks-overview' ||
+			parentStat.id === 'outgoing-documents' ||
+			parentStat.id === 'incoming-documents'
+		) {
 			setSelectedStatBlock({ ...blockInfo, parentCard: parentStat });
 			setStatDetailJobDialogOpen(true);
 		}

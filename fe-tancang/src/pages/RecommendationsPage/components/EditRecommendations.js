@@ -61,7 +61,7 @@ const recommendationSchema = yup.object().shape({
 
 
 
-function EditRecommendations({ open, onClose, onSuccess, data, sharedComponents }) {
+function EditRecommendations({ open, onClose, data, sharedComponents, setReloadData }) {
   const {
     InputComponents: BaseInput,
     toast,
@@ -230,36 +230,39 @@ function EditRecommendations({ open, onClose, onSuccess, data, sharedComponents 
     }
   }, [open]);
 
+  const fetchData = useCallback(async () => {
+    if (open && data) {
+      try {
+        setIsLoading(true);
+        const id = data.id || data._id;
+        if (!id) return;
+        const response = await axiosInstance.get(`${API_REFLECT_SUGGESTIONS}/${id}`);
+        const result = response?.data?.data || response?.data || response;
+        setDisplayData(result);
+        reset({
+          recommendationType: result.types || "",
+          urgency: result.priority || "",
+          title: result.title || "",
+          content: result.content || ""
+        });
+        setUploadedFiles(result.files || []);
+      } catch (error) {
+        toast("Không thể tải thông tin phản ánh!", "error");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  }, [open, data, reset, toast]);
+
   useEffect(() => {
     if (open && data) {
-      const fetchDetail = async () => {
-        try {
-          setIsLoading(true);
-          const id = data.id || data._id;
-          if (!id) return;
-          const response = await axiosInstance.get(`${API_REFLECT_SUGGESTIONS}/${id}`);
-          const result = response?.data?.data || response?.data || response;
-          setDisplayData(result);
-          reset({
-            recommendationType: result.types || "",
-            urgency: result.priority || "",
-            title: result.title || "",
-            content: result.content || ""
-          });
-          setUploadedFiles(result.files || []);
-        } catch (error) {
-          toast("Không thể tải thông tin phản ánh!", "error");
-        } finally {
-          setIsLoading(false);
-        }
-      };
-      fetchDetail();
+      fetchData();
     } else {
       reset(defaultValues);
       setUploadedFiles([]);
       setDisplayData(null);
     }
-  }, [open, data, reset, defaultValues, toast]);
+  }, [open, data, fetchData, reset, defaultValues]);
 
   const handleClose = useCallback(() => {
     onClose();
@@ -325,14 +328,14 @@ function EditRecommendations({ open, onClose, onSuccess, data, sharedComponents 
       }
 
       toast("Cập nhật phản ánh thành công!", "success");
-      onSuccess?.();
-      onClose();
+      fetchData();
+      setReloadData?.(prev => prev + 1);
     } catch (error) {
        toast(error?.response?.data?.message || "Cập nhật phản ánh thất bại!", "error");
     } finally {
        setIsLoading(false);
     }
-  }, [data, toast, onSuccess, onClose, uploadedFiles]);
+  }, [data, toast, setReloadData, fetchData, uploadedFiles]);
 
   const handleSaveClick = useCallback(() => {
     handleSubmit(onSubmit)();
@@ -355,14 +358,14 @@ function EditRecommendations({ open, onClose, onSuccess, data, sharedComponents 
       
       toast("Đã huỷ phản ánh thành công!", "success");
       setCancelDialogOpen(false);
-      onSuccess?.();
-      onClose();
+      fetchData();
+      setReloadData?.(prev => prev + 1);
     } catch (error) {
       toast("Huỷ phản ánh thất bại!", "error");
     } finally {
       setIsLoading(false);
     }
-  }, [toast, onSuccess, onClose]);
+  }, [toast, setReloadData, fetchData]);
 
   const handleFileUpload = useCallback((event) => {
     const files = Array.from(event.target.files);

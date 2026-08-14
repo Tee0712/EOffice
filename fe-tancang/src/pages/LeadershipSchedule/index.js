@@ -36,7 +36,6 @@ import LeadershipScheduleList from '@pages/LeadershipScheduleList';
 import { getComponentByKey } from '@builder-table/components/componentRegistry';
 import { openDetailDialog } from '@components/GlobalDialogPortal';
 import withSharedComponents from '@components/WrapperComponent';
-import axiosInstance from '@utils/axiosInstance';
 import { useToast } from '@components/common/ToastProvider';
 
 const logger = console;
@@ -740,41 +739,41 @@ const LeadershipSchedule = (props) => {
 
     useEffect(() => { fetchData(); }, [fetchData]);
 
-    const handleMeetingClick = useCallback(async (meeting, dayItem) => {
+    const handleMeetingClick = useCallback(async (meeting) => {
         let meetingId = meeting?.meetingId || meeting?._id || meeting?.id;
 
+        // if (!meetingId) {
+        //     const currentDate = dayItem?.date;
+        //     if (currentDate) {
+        //         try {
+        //             const response = await axiosInstance.get(`/api/meetings/add-meeting-schedule?type=day&filter[currentDate]=${currentDate}`);
+        //             if (response && response.items) {
+        //                 const matched = response.items.find(item => {
+        //                     const cleanItemTitle = String(item.title || "").toLowerCase().trim();
+        //                     const cleanMeetingContent = String(meeting.content || "").toLowerCase().trim();
+
+        //                     const titleMatch = cleanItemTitle === cleanMeetingContent ||
+        //                         cleanItemTitle.includes(cleanMeetingContent) ||
+        //                         cleanMeetingContent.includes(cleanItemTitle);
+
+        //                     const itemTime = String(item.meetingTime || "").replace(/\s+/g, "");
+        //                     const meetingTime = String(meeting.time || "").replace(/\s+/g, "");
+        //                     const timeMatch = itemTime.startsWith(meetingTime);
+
+        //                     return titleMatch && timeMatch;
+        //                 });
+        //                 if (matched) {
+        //                     meetingId = matched.id || matched._id;
+        //                 }
+        //             }
+        //         } catch (error) {
+        //             logger.error("Error fetching meeting ID:", error);
+        //         }
+        //     }
+        // }
+
         if (!meetingId) {
-            const currentDate = dayItem?.date;
-            if (currentDate) {
-                try {
-                    const response = await axiosInstance.get(`/api/meetings/add-meeting-schedule?type=day&filter[currentDate]=${currentDate}`);
-                    if (response && response.items) {
-                        const matched = response.items.find(item => {
-                            const cleanItemTitle = String(item.title || "").toLowerCase().trim();
-                            const cleanMeetingContent = String(meeting.content || "").toLowerCase().trim();
-
-                            const titleMatch = cleanItemTitle === cleanMeetingContent ||
-                                cleanItemTitle.includes(cleanMeetingContent) ||
-                                cleanMeetingContent.includes(cleanItemTitle);
-
-                            const itemTime = String(item.meetingTime || "").replace(/\s+/g, "");
-                            const meetingTime = String(meeting.time || "").replace(/\s+/g, "");
-                            const timeMatch = itemTime.startsWith(meetingTime);
-
-                            return titleMatch && timeMatch;
-                        });
-                        if (matched) {
-                            meetingId = matched.id || matched._id;
-                        }
-                    }
-                } catch (error) {
-                    logger.error("Error fetching meeting ID:", error);
-                }
-            }
-        }
-
-        if (!meetingId) {
-            toast("Không tìm thấy ID cuộc họp!", "error");
+            // toast("Không tìm thấy ID cuộc họp!", "error");
             return;
         }
 
@@ -793,8 +792,8 @@ const LeadershipSchedule = (props) => {
         }, meetingId, { sharedComponents: props.sharedComponents });
     }, [fetchData, props.sharedComponents, toast]);
 
-    const onMeetingClick = useCallback((meeting, dayItem) => () => {
-        handleMeetingClick(meeting, dayItem);
+    const onMeetingClick = useCallback((meeting) => () => {
+        handleMeetingClick(meeting);
     }, [handleMeetingClick]);
 
     const scheduleItems = useMemo(() => scheduleData?.items || [], [scheduleData]);
@@ -1562,7 +1561,7 @@ const LeadershipSchedule = (props) => {
                                                                         maxHeight: '66px',
                                                                         lineHeight: '22px'
                                                                     }}
-                                                                    onClick={isDraft ? onMeetingClick(meeting, dayItem) : undefined}
+                                                                    onClick={isDraft ? onMeetingClick(meeting) : undefined}
                                                                 >
                                                                     {meeting?.title || ""}
                                                                 </span>

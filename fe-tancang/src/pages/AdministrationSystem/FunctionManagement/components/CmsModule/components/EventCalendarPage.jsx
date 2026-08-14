@@ -1179,7 +1179,7 @@ export default function EventCalendarPage() {
             )}
 
 
-            <style jsx>{`
+            <style>{`
                 .ec-chevron-icon { display: inline-flex; align-items: center; }
                 .ec-page-wrapper {
                     background: transparent;

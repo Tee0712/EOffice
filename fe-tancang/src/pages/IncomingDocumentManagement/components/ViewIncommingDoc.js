@@ -8,7 +8,7 @@ import UploadFile from "@components/UploadFile";
 
 import { CircularProgress } from "@mui/material";
 import { StyledLoadingPopupSignDigital } from "@styles/UploadFile/UploadFile.style";
-import { NotificationContext } from "@components/NotificationContext";
+
 import FormButton from "@components/FormButton";
 import SuggestTransferProcess from "@components/SuggestTransferProcess/indexV2";
 import ViewJobToDocument from "@pages/WorkManagement/components/ViewJobToDocument";
@@ -168,10 +168,7 @@ const ViewIncommingDoc = ({
   sharedComponents,
   setReloadData,
   isAuthority,
-  isFromNotification,
 }) => {
-  const notifContext = React.useContext(NotificationContext);
-  const isNotif = Boolean(isFromNotification || notifContext?.isFromNotification);
   const {
     // CustomSwipper,
     CustomTabsWithBadge
@@ -273,13 +270,8 @@ const ViewIncommingDoc = ({
   const handleTransferSuccessAndClose = useCallback(() => {
     setSuggestionConfig(null);
     setTransferConfig(null);
-    if (isNotif) {
-      handleReloadAll();
-    } else {
-      onClose();
-      if (setReloadData) setReloadData((prev) => (typeof prev === "number" ? prev + 1 : !prev));
-    }
-  }, [isNotif, handleReloadAll, onClose, setReloadData]);
+    handleReloadAll();
+  }, [handleReloadAll]);
 
 	// khi mở dialog, khởi tạo stack = [documentId gốc]
 	useEffect(() => {
@@ -573,13 +565,8 @@ const ViewIncommingDoc = ({
   }, []);
   const handleRejectSuccess = useCallback(() => {
     handleCloseRejectDialog();
-    if (isNotif) {
-      handleReloadAll();
-    } else {
-      onClose();
-      if (setReloadData) setReloadData((prev) => (typeof prev === "number" ? prev + 1 : !prev));
-    }
-  }, [isNotif, handleCloseRejectDialog, handleReloadAll, onClose, setReloadData]);
+    handleReloadAll();
+  }, [handleCloseRejectDialog, handleReloadAll]);
   // Filter out the 'recallText' action from dataDetail.availableActions
   // const filteredAvailableActions = useMemo(() => {
   //   if (!dataDetail?.availableActions) return [];
@@ -994,8 +981,7 @@ const ViewIncommingDoc = ({
           
             <FormButton
               dataDetail={dataDetail}
-              setReloadData={isNotif ? handleReloadAll : setReloadData}
-              onClose={isNotif ? undefined : onClose}
+              setReloadData={handleReloadAll}
               isView
               getFormDataForUpdate={getFormDataForUpdate}
               signedCopyFiles={signedCopyFiles}

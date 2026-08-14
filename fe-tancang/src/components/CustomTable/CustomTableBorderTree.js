@@ -613,6 +613,23 @@ ActionConfigItem.propTypes = {
   featureType: PropTypes.string.isRequired,
 };
 
+const POPPER_MODIFIERS = [
+  {
+    name: "flip",
+    enabled: true,
+    options: {
+      fallbackPlacements: ["top-start", "right-start"],
+    },
+  },
+  {
+    name: "preventOverflow",
+    enabled: true,
+    options: {
+      boundary: "viewport",
+    },
+  },
+];
+
 const CustomTableBorderTree = ({
   type,
   data = [],
@@ -1241,7 +1258,7 @@ const CustomTableBorderTree = ({
                     <TreeTableCell $level={level}>
                       {/* {parentLines.map((showLine, i) => showLine ? <VerticalLine key={i} level={i} /> : null)} */}
                       {/* {parentId && <HorizontalLine level={level} />} */}
-                      {type !== "sendingUnit" && (row.flag ? (
+                      {type !== "sendingUnit" && type !== "statDetailTreeTable" && (row.flag ? (
                         (() => {
                           let content = row.flag;
                           if (typeof content === "string") {
@@ -1788,7 +1805,7 @@ const CustomTableBorderTree = ({
           )}
         </TableBody>
         </StyledTableBorder>
-        <PopperStyled open={openFilePopper} anchorEl={filePopoverAnchorEl} placement="bottom-start" modifiers={[{ name: "flip", enabled: true, options: { fallbackPlacements: ["top-start", "right-start"] } }, { name: "preventOverflow", enabled: true, options: { boundary: "viewport" } }]}>
+        <PopperStyled open={openFilePopper} anchorEl={filePopoverAnchorEl} placement="bottom-start" modifiers={POPPER_MODIFIERS}>
           <FilePopoverContainer onMouseEnter={handlePopoverMouseEnter} onMouseLeave={handleCloseFilePopoverWithDelay}>
             {currentFiles.map((file) => (
               <MenuItem key={file.fileId || file.fileName || Math.random()} onClick={handleFileClick(file)}>

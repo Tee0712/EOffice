@@ -38,6 +38,7 @@ import {
 } from "@pages/IncomingDocumentManagement/components/AddIncommingDoc/components/AddIncommingDoc.styles";
 import FormButton from "@components/FormButton";
 import { typeFlagMap } from "@components/FormButton/constant";
+
 import * as yup from "yup";
 
 import dayjs from "dayjs";
@@ -1819,11 +1820,18 @@ const ViewMeetingSchedulePopup = ({
     setOpenUpdateMeeting(false);
   }, []);
 
+  const handleReloadAll = useCallback(() => {
+    fetchMeetingDetails();
+    fetchMeetingTasks();
+    fetchParticipants();
+    fetchMeetingTasksList();
+    onSuccess?.();
+  }, [fetchMeetingDetails, fetchMeetingTasks, fetchParticipants, fetchMeetingTasksList, onSuccess]);
+
   const handleUpdateSuccess = useCallback(() => {
     setOpenUpdateMeeting(false);
-    onSuccess?.();
-    onClose();
-  }, [onSuccess, onClose]);
+    handleReloadAll();
+  }, [handleReloadAll]);
 
   const handleClose = useCallback(() => {
     onSuccess?.();
@@ -1876,8 +1884,7 @@ const ViewMeetingSchedulePopup = ({
                   <FormButton
                     dataDetail={dataForFormButton}
                     onAction={handleCustomAction}
-                    setReloadData={onSuccess} // Trigger refresh on success
-                    onClose={onClose}
+                    setReloadData={handleReloadAll}
                   />
                 </Grid>
               )}
